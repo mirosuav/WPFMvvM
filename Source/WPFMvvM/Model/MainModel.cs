@@ -6,6 +6,6 @@ using System.Threading.Tasks;
 
 namespace WPFMvvM.Model;
 
-public class MainM : ObservableObject
+public class MainModel : ObservableObject
 {
 }

@@ -1,14 +1,16 @@
-﻿<Window x:Class="WPFMvvM.View.MainV"
+﻿<Window x:Class="WPFMvvM.View.MainView"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:WPFMvvM.ViewModel"
-        d:DataContext="{d:DesignInstance Type=vm:MainVM}"
+        d:DataContext="{d:DesignInstance Type=vm:MainViewModel}"
         Title="{Binding Title}"         
         Height="450" Width="800"
     mc:Ignorable="d">
     <Grid>
+
+        <TextBox Text="{Binding AppInfoString,Mode=OneWay}" TextWrapping="Wrap" />
 
     </Grid>
 </Window>

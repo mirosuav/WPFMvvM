@@ -13,3 +13,8 @@ global using CommunityToolkit.Diagnostics;
 global using CommunityToolkit.Mvvm;
 global using CommunityToolkit.Mvvm.ComponentModel;
 global using Microsoft.Extensions.Options;
+global using System.Windows.Threading;
+global using WPFMvvM.Common;
+global using WPFMvvM.Extensions;
+global using WPFMvvM.View;
+global using WPFMvvM.ViewModel;

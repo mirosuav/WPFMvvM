@@ -1,6 +1,6 @@
 ﻿namespace WPFMvvM.ViewModel;
 
-public abstract partial class BaseVM : ObservableRecipient
+public abstract partial class BaseViewModel : ObservableRecipient
 {
     [ObservableProperty]
     string? title;

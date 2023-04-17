@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WPFMvvM.Common;
 using WPFMvvM.Settings;
 using WPFMvvM.ViewModel;
 
@@ -20,7 +21,7 @@ public class MainVMTests
         var opts = new GeneralSettings { Title = "Hello Tests!" };
 
         //Act
-        var target = new MainVM(Options.Create(opts));
+        var target = new MainViewModel(Options.Create(opts), Options.Create(Substitute.For<AppInfo>()));
         using var monitoredtarget = target.Monitor();
         await target.InitializeAsync(CancellationToken.None);
 
