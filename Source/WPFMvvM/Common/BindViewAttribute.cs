@@ -1,8 +1,8 @@
 ﻿namespace WPFMvvM.Common;
 
-public class UseViewAttribute : Attribute
+public class BindViewAttribute : Attribute
 {
-    public UseViewAttribute(Type viewName)
+    public BindViewAttribute(Type viewName)
     {
         ViewType = viewName;
     }

@@ -18,3 +18,4 @@ global using WPFMvvM.Common;
 global using WPFMvvM.Extensions;
 global using WPFMvvM.View;
 global using WPFMvvM.ViewModel;
+global using CommunityToolkit.Mvvm.Messaging;

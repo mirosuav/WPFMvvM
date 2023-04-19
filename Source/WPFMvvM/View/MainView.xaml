@@ -8,7 +8,25 @@
         Title="{Binding Title}"         
         Height="450" Width="800"
     mc:Ignorable="d">
-    <Grid>
 
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Menu Grid.Row="0" >
+            <MenuItem Header="_File">
+                <MenuItem Header="_Dashboard" Command="{Binding DashboardCommand}" />
+                <MenuItem Header="_About" Command="{Binding AboutCommand}" />
+                <Separator />
+                <MenuItem Header="_Exit" Command="{Binding ExitCommand}" />
+            </MenuItem>
+        </Menu>
+
+        <ContentControl Margin="10" Content="{Binding ContenViewModel.View}"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch"
+                        Grid.Row="1" />
     </Grid>
 </Window>
