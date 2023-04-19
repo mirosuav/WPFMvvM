@@ -9,7 +9,6 @@ public partial class MainViewModel : BaseViewModel
     private readonly IOptions<GeneralSettings> generalSettings;
     private readonly AppInfo appInfo;
 
-    public string? AppInfoString => appInfo?.ToString();
 
     public MainViewModel(IOptions<GeneralSettings> generalSettings, IOptions<AppInfo> appInfo)
     {

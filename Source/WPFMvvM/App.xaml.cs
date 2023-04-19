@@ -89,6 +89,7 @@ public partial class App : Application, IApp
         }
         catch (OperationCanceledException)
         {
+            LogAndShowCriticalException("Application initialization cancelled.");
             Shutdown();
             return;
         }
@@ -104,11 +105,12 @@ public partial class App : Application, IApp
         }
 
     }
-    private void MainView_Closed(object sender, EventArgs e)
+
+    private void MainView_Closed(object? sender, EventArgs e)
     {
         Application.Current?.Shutdown();
     }
-    
+
     protected override async void OnExit(ExitEventArgs e)
     {
         using (appHost)
@@ -138,15 +140,11 @@ public partial class App : Application, IApp
     void HandleUiExceptions(object sender, DispatcherUnhandledExceptionEventArgs e)
         => LogAndShowCriticalException("Application unhandled exception catched.", e.Exception);
 
-    public void LogAndShowException(Exception ex)
-        => LogAndShowCriticalException(ex.Message, ex);
-
     private void taskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
     => LogAndShowCriticalException("Application asynchronous exception occured", e.Exception);
 
-    public void LogAndShowCriticalException(string message, Exception? ex)
+    public void LogAndShowCriticalException(string message, Exception? ex = null)
     {
-        Guard.IsNotNull(message, "Message");
         if (ex is null)
         {
             appLogger.LogCritical(message);
