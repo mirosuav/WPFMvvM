@@ -1,14 +1,16 @@
-﻿namespace WPFMvvM.ViewModel;
+﻿using WPFMvvM.Utils;
 
-[BindView(typeof(DashboardView))]
+namespace WPFMvvM.ViewModel;
+
+//[BindView(typeof(DashboardView))]
 public partial class DashboardViewModel : BaseViewModel
 {
-    public DashboardViewModel(IMessenger messenger) : base(messenger)
+    public DashboardViewModel(IAppScope scope) : base(scope)
     {
     }
 
-    protected internal override ValueTask InitializeAsync(CancellationToken cancelltoken)
+    protected override ValueTask InitializeInternal(CancellationToken cancelltoken, params object[] parameters)
     {
-        return base.InitializeAsync(cancelltoken);
+        return base.InitializeInternal(cancelltoken);
     }
 }

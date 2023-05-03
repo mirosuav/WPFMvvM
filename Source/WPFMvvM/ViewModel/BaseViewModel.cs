@@ -1,36 +1,56 @@
-﻿using WPFMvvM.Messages;
+﻿using WPFMvvM.Common;
+using WPFMvvM.Messages;
 
 namespace WPFMvvM.ViewModel;
 
-public abstract partial class BaseViewModel : ObservableValidator
+public abstract partial class BaseViewModel : ObservableValidator, IDisposable
 {
-    protected readonly IMessenger messenger;
+    protected readonly IAppScope Scope;
+    protected bool Disposed;
 
-    [ObservableProperty]
-    string? title;
+    public object? View { get; internal set; }
 
-    public object? View { get; set; }//TODO This is nasty here, find better way to bind View to a ViewModel and then embed it in a parent view
-
-
-    protected BaseViewModel(IMessenger messenger)
+    protected BaseViewModel(IAppScope scope)
     {
-        this.messenger = messenger;
+        this.Scope = scope;
+        scope.RegisterMessageRecipient(this);
     }
 
-    protected internal virtual ValueTask InitializeAsync(CancellationToken cancelltoken)
+    public ValueTask Initialize(CancellationToken token, params object[] parameters)
+    {
+        return InitializeInternal(token, parameters);
+    }
+
+    protected virtual ValueTask InitializeInternal(CancellationToken cancelltoken, params object[] parameters)
     {
         cancelltoken.ThrowIfCancellationRequested();
         return ValueTask.CompletedTask;
     }
 
-    protected BaseViewModel RequestViewModel<T>() where T : BaseViewModel
+    /// <summary>
+    /// Validate current screen before leaving
+    /// </summary>
+    protected virtual ValueTask<bool> CheckUnsavedChanges()
     {
-        var message = messenger.Send(new ViewModelRequest(typeof(T)));
-#if DEBUG
-        //Ths must be ensured by the tests
-        Guard.IsNotNull(message.Result);
-        Guard.IsAssignableToType<T>(message.Result);
-#endif
-        return message.Result;
+        return ValueTask.FromResult(true);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!Disposed)
+        {
+            if (disposing)
+            {
+                Scope?.UnregisterMessageRecipient(this);
+            }
+            Disposed = true;
+        }
+    }
+
+    public void Dispose()
+    {
+        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
     }
 }

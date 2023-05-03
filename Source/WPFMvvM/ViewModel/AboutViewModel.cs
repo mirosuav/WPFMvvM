@@ -1,12 +1,13 @@
-﻿namespace WPFMvvM.ViewModel;
+﻿using WPFMvvM.Utils;
 
-[BindView(typeof(AboutView))]
+namespace WPFMvvM.ViewModel;
+
 public partial class AboutViewModel : BaseViewModel
 {
     [ObservableProperty]
     private AppInfo appInfo;
 
-    public AboutViewModel(IMessenger messenger, IOptions<AppInfo> appInfo) : base(messenger)
+    public AboutViewModel(IAppScope scope, IOptions<AppInfo> appInfo) : base(scope)
     {
         this.appInfo = appInfo.Value;
     }

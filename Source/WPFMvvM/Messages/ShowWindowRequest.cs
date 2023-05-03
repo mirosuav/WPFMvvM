@@ -2,11 +2,11 @@
 
 namespace WPFMvvM.Messages;
 
-public class ViewModelRequest : RequestMessage<BaseViewModel?>
+internal class ShowWindowRequest : RequestMessage<BaseWindowModel?>
 {
     public readonly Type ViewModelType;
 
-    public ViewModelRequest(Type viewModelType)
+    public ShowWindowRequest(Type viewModelType)
     {
         ViewModelType = viewModelType;
     }

@@ -1,11 +1,13 @@
-﻿using System.Diagnostics;
+﻿using CommunityToolkit.Mvvm.Messaging;
+using Microsoft.Extensions.DependencyInjection;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows.Markup;
-using WPFMvvM.Handlers;
+using WPFMvvM.GlobalHandlers;
 using WPFMvvM.Messages;
-using WPFMvvM.Settings;
+using WPFMvvM.Utils;
 
 namespace WPFMvvM.Common;
 
@@ -13,23 +15,26 @@ namespace WPFMvvM.Common;
 /// WPF Application host
 /// This class will eventually be extracted into a separate framework
 /// </summary>
-public sealed partial class WPFApplicationHost : IRecipient<ApplicationShutdownRequest>
+public sealed partial class WPFApplicationHost
 {
-    private readonly Application hostedApp;
+    internal readonly Application HostedApp;
     private readonly IHost appHost;
-    private readonly ILogger<Application> appLogger;
+    private readonly IAppScope appScope;
+    private readonly ILogger<WPFApplicationHost> appLogger;
     private readonly AppInfo appInfo;
+
     //Main cancellation token source
     //get invoked when user press the close X on splash screen
     //or cancells any of startup or login screens
-    private CancellationTokenSource cts = new();
+    private readonly CancellationTokenSource cts = new();
 
-    public WPFApplicationHost(Application hostedApp,params string[] args)
+    public WPFApplicationHost(Application hostedApp, params string[] args)
     {
-        this.hostedApp = hostedApp;
+        this.HostedApp = hostedApp;
         appInfo = ReadAppInfo(hostedApp.GetType());
         appHost = CreateAndConfigureHostBuilder(args).Build();
-        appLogger = appHost.Services.GetRequiredService<ILogger<App>>();
+        appScope = appHost.Services.GetRequiredService<IAppScope>();
+        appLogger = appHost.Services.GetRequiredService<ILogger<WPFApplicationHost>>();
     }
 
 
@@ -57,24 +62,25 @@ public sealed partial class WPFApplicationHost : IRecipient<ApplicationShutdownR
 
     private void ConfigureServices(HostBuilderContext context, IServiceCollection services)
     {
-        //make AppInfo available as IOptions<AppInfo>
-        services.Configure<AppInfo>((ai) => appInfo.CopyTo(ai));
+        services.RegisterAppServices(this);
+        RegisterConfiguration(context, services);
 
-        services.Configure<GeneralSettings>(context.Configuration.GetSection(nameof(GeneralSettings)));
+        services.AddSingleton<MainWindowModel>();
+        //services.AddSingleton<MainWindow>();
 
-        services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default); //TODO use StrongReferenceMessenger
-        services.AddSingleton<MainViewModel>();
-        services.AddSingleton<MainView>();
-
-        services.AddSingleton<ViewModelRequestHandler>(); //scoped so it can resolve in nested application scopes
-
-        services.AddTransient<DashboardView>();
         services.AddTransient<DashboardViewModel>();
-        services.AddTransient<AboutView>();
+        // services.AddTransient<DashboardView>();
         services.AddTransient<AboutViewModel>();
+        // services.AddTransient<AboutView>();
 
+        services.AddTransient<PromptWindowModel>();
     }
 
+    void RegisterConfiguration(HostBuilderContext context, IServiceCollection services)
+    {
+        services.Configure<AppInfo>((ai) => appInfo.CopyTo(ai));
+        services.Configure<GeneralSettings>(context.Configuration.GetSection(nameof(GeneralSettings)));
+    }
 
 
     public async Task Start(StartupEventArgs e)
@@ -86,21 +92,19 @@ public sealed partial class WPFApplicationHost : IRecipient<ApplicationShutdownR
             appLogger.LogInformation("Application started.");
             cts.Token.ThrowIfCancellationRequested();
 
-            //create main application scope - used in MainView
-            var _mainAppScope = appHost.Services.CreateScope();
-            var vmrh = _mainAppScope.ServiceProvider.GetRequiredService<ViewModelRequestHandler>();
-            var (vm, v) = vmrh.GetViewModel(typeof(MainViewModel));
+            var mainVm = appScope.SendMessage(new ViewModelRequest(typeof(MainWindowModel))).Response;
 
-            cts.Token.ThrowIfCancellationRequested();
-            await vm.InitializeAsync(cts.Token);
+            ArgumentNullException.ThrowIfNull(mainVm);
+
+            await mainVm.Initialize(cts.Token);
             cts.Token.ThrowIfCancellationRequested();
 
-            hostedApp.MainWindow = v as Window;
-            Guard.IsNotNull(hostedApp.MainWindow, $"MainView must be of Window type!");
+            HostedApp.MainWindow = new MainWindow { DataContext = mainVm };
+            Guard.IsNotNull(HostedApp.MainWindow, $"MainView must be of Window type!");
 
-            hostedApp.MainWindow.Closed += MainView_Closed;
+            HostedApp.MainWindow.Closed += MainView_Closed;
             cts.Token.ThrowIfCancellationRequested();
-            hostedApp.MainWindow.Show();
+            HostedApp.MainWindow.Show();
 
             cts.Token.ThrowIfCancellationRequested();
 
@@ -108,13 +112,13 @@ public sealed partial class WPFApplicationHost : IRecipient<ApplicationShutdownR
         catch (OperationCanceledException)
         {
             LogAndShowCriticalException("Application initialization cancelled.");
-            hostedApp.Shutdown();
+            HostedApp.Shutdown();
             return;
         }
         catch (Exception ex)
         {
             LogAndShowCriticalException("Unexpected error occured", ex);
-            hostedApp.Shutdown();
+            HostedApp.Shutdown();
             return;
         }
         finally
@@ -124,15 +128,18 @@ public sealed partial class WPFApplicationHost : IRecipient<ApplicationShutdownR
 
     }
 
-    private void MainView_Closed(object? sender, EventArgs e)
+    void MainView_Closed(object? sender, EventArgs e)
     {
-        hostedApp.Shutdown();
+        if (HostedApp?.MainWindow is not null)
+            HostedApp.MainWindow.Closed -= MainView_Closed;
+        HostedApp?.Shutdown();
     }
 
     public async Task Stop()
     {
         using (appHost)
         {
+            appScope?.Dispose();
             //ensure logs are flushed
             await appHost.StopAsync(TimeSpan.FromSeconds(2));
         }
@@ -148,7 +155,7 @@ public sealed partial class WPFApplicationHost : IRecipient<ApplicationShutdownR
         AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(HandleDomainExceptions);
         //and for UI unhandled exceptions
         Application.Current.DispatcherUnhandledException += new DispatcherUnhandledExceptionEventHandler(HandleUiExceptions);
-        TaskScheduler.UnobservedTaskException += taskScheduler_UnobservedTaskException;
+        TaskScheduler.UnobservedTaskException += HandleUnobservedTaskSchedulerException;
     }
 
     void HandleDomainExceptions(object sender, UnhandledExceptionEventArgs e)
@@ -157,7 +164,7 @@ public sealed partial class WPFApplicationHost : IRecipient<ApplicationShutdownR
     void HandleUiExceptions(object sender, DispatcherUnhandledExceptionEventArgs e)
         => LogAndShowCriticalException("Application unhandled exception catched.", e.Exception);
 
-    private void taskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
+    void HandleUnobservedTaskSchedulerException(object? sender, UnobservedTaskExceptionEventArgs e)
     => LogAndShowCriticalException("Application asynchronous exception occured", e.Exception);
 
     public void LogAndShowCriticalException(string message, Exception? ex = null)
@@ -169,17 +176,12 @@ public sealed partial class WPFApplicationHost : IRecipient<ApplicationShutdownR
         }
         else
         {
-            appLogger.LogCritical(message, ex);
-            MessageBox.Show($"{message}{Environment.NewLine}{ex.Message}", "Error");
+            appLogger.LogCritical(ex, message);
+            MessageBox.Show($"{message}{Environment.NewLine}{ex?.Message}", "Error");
         }
     }
 
-    void IRecipient<ApplicationShutdownRequest>.Receive(ApplicationShutdownRequest message)
-    {
-        hostedApp.Shutdown();
-    }
-
-    internal static void ConfigureWPFApplicationCulture(string? uiCultureCode = null, string? cultureCode = null)
+    static void ConfigureWPFApplicationCulture(string? uiCultureCode = null, string? cultureCode = null)
     {
         //Set CurrentUICulture = Application language
         if (uiCultureCode is not null)
@@ -212,10 +214,10 @@ public sealed partial class WPFApplicationHost : IRecipient<ApplicationShutdownR
 
     }
 
-    internal static AppInfo ReadAppInfo(Type appType)
+    static AppInfo ReadAppInfo(Type appType)
     {
         var assembly = appType.Assembly;
-        AppInfo appInfo = new AppInfo();
+        AppInfo appInfo = new();
         appInfo.AppAssemblyPath = assembly.Location;
         appInfo.AppDirectory = Path.GetDirectoryName(appInfo.AppAssemblyPath);
         appInfo.VersionInfo = FileVersionInfo.GetVersionInfo(appInfo.AppAssemblyPath);

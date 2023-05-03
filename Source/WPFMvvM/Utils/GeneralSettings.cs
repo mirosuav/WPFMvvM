@@ -1,4 +1,4 @@
-﻿namespace WPFMvvM.Settings;
+﻿namespace WPFMvvM.Utils;
 
 public sealed class GeneralSettings
 {

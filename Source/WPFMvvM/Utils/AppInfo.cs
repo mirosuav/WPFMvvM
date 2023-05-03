@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace WPFMvvM.Common;
+namespace WPFMvvM.Utils;
 
 public record AppInfo
 {

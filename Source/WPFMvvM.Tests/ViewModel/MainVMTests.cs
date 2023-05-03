@@ -1,13 +1,6 @@
-﻿using FluentAssertions;
-using Microsoft.Extensions.Options;
-using NSubstitute;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Microsoft.Extensions.Options;
 using WPFMvvM.Common;
-using WPFMvvM.Settings;
+using WPFMvvM.Utils;
 using WPFMvvM.ViewModel;
 
 namespace WPFMvvM.Tests.ViewModel;
@@ -21,9 +14,9 @@ public class MainVMTests
         var opts = new GeneralSettings { Title = "Hello Tests!" };
 
         //Act
-        var target = new MainViewModel(Options.Create(opts), Options.Create(Substitute.For<AppInfo>()));
+        var target = new MainWindowModel(Substitute.For<IAppScope>(), Options.Create(opts));
         using var monitoredtarget = target.Monitor();
-        await target.InitializeAsync(CancellationToken.None);
+        await target.Initialize(CancellationToken.None);
 
         //Assert
         target.Title.Should().Be(opts.Title);

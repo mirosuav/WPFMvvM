@@ -1,7 +1,4 @@
-﻿using System.Reflection;
-using System.Windows.Controls;
-
-namespace WPFMvvM.Extensions;
+﻿namespace WPFMvvM.Extensions;
 
 public static class ServiceProviderExtensions
 {

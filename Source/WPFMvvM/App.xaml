@@ -1,8 +1,12 @@
-﻿<Application x:Class="WPFMvvM.App"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:WPFMvvM">
+﻿<Application
+    x:Class="WPFMvvM.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:WPFMvvM"
+    xmlns:v="clr-namespace:WPFMvvM.View"
+    xmlns:vm="clr-namespace:WPFMvvM.ViewModel">
     <Application.Resources>
-         
+
+
     </Application.Resources>
 </Application>
