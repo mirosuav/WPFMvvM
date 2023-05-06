@@ -11,7 +11,8 @@
     WindowStartupLocation="CenterScreen"
     WindowStyle="SingleBorderWindow"
     mc:Ignorable="d">
-    <Grid>
+    <StackPanel Orientation="Vertical">
         <TextBlock Text="{Binding Title}" />
-    </Grid>
+        <Button Content="Close" Command="{Binding CloseCommand}" />
+    </StackPanel>
 </Window>

@@ -1,9 +1,13 @@
 ﻿using CommunityToolkit.Mvvm.Input;
-using WPFMvvM.Messages;
-using WPFMvvM.Utils;
+using CommunityToolkit.Mvvm.Messaging;
+using WPFMvvM.Framework.Common;
+using WPFMvvM.Framework.Messages;
+using WPFMvvM.Framework.Utils;
+using WPFMvvM.Framework.ViewModel;
 
 namespace WPFMvvM.ViewModel;
 
+[BindView(typeof(MainWindow))]
 public partial class MainWindowModel : BaseWindowModel
 {
     private readonly IOptions<GeneralSettings> generalSettings;
@@ -27,33 +31,34 @@ public partial class MainWindowModel : BaseWindowModel
     [RelayCommand]
     async Task Dashboard(CancellationToken token)
     {
-        ContenViewModel = Scope.RequestViewModel<DashboardViewModel>();
+        ContenViewModel = Scope.ResolveViewModel<DashboardViewModel>();
         await ContenViewModel.Initialize(token);
     }
 
     [RelayCommand]
     async Task About(CancellationToken token)
     {
-        ContenViewModel = Scope.RequestViewModel<AboutViewModel>();
-        await ContenViewModel.Initialize(token);
+
+        var vm = Scope.CreateNewScope().ResolveViewModel<AboutViewModel>();
+        await vm.Initialize(token);
+        await Scope.WindowService.ShowDialog(vm, token);
+
+        //ContenViewModel = Scope.ResolveViewModel<AboutViewModel>();
+        //await ContenViewModel.Initialize(token);
     }
 
     [RelayCommand]
     async Task AskUser(CancellationToken token)
     {
-        var vm = Scope.CreateNewScope().RequestViewModel<PromptWindowModel>();
+        var vm = Scope.CreateNewScope().ResolveViewModel<PromptWindowModel>();
         await vm.Initialize(token);
-        await vm.ShowViewDialog(token);
+        await Scope.WindowService.ShowDialog(vm, token);
     }
 
     [RelayCommand()]
-    void Exit(CancellationToken token)
+    void Exit()
     {
-        Scope.SendMessage(new ApplicationShutdownNotification());
+        Scope.Messenger.Send(new ApplicationShutdownNotification());
     }
 
-    internal Task InitializeInternal(CancellationToken none)
-    {
-        throw new NotImplementedException();
-    }
 }

@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
-using WPFMvvM.Common;
-using WPFMvvM.Utils;
+using WPFMvvM.Framework.Common;
+using WPFMvvM.Framework.Utils;
 using WPFMvvM.ViewModel;
 
 namespace WPFMvvM.Tests.ViewModel;

@@ -29,6 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\WPFMvvM.Framework\WPFMvvM.Framework.csproj" />
     <ProjectReference Include="..\WPFMvvM\WPFMvvM.csproj" />
   </ItemGroup>
 

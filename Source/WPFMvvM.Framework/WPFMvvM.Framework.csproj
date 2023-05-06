@@ -1,44 +1,31 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<OutputType>WinExe</OutputType>
 		<TargetFramework>net6.0-windows</TargetFramework>
 		<Nullable>enable</Nullable>
 		<UseWPF>true</UseWPF>
 		<ImplicitUsings>enable</ImplicitUsings>
-		<StartupObject>WPFMvvM.Program</StartupObject>
-		<Company>Company</Company>
-		<ProductName>WPFMvvM App</ProductName>
-		<ProductVersion>1.0.0</ProductVersion>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<AssemblyAttribute Include="System.Runtime.InteropServices.GuidAttribute">
-			<_Parameter1>97081F26-7F67-430C-8DD0-27D579DE7F1C</_Parameter1>
-		</AssemblyAttribute>
 		<InternalsVisibleTo Include="WPFMvvM.Tests" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<!--<PackageReference Include="CommunityToolkit.Diagnostics" Version="8.1.0" />
+		<PackageReference Include="CommunityToolkit.Diagnostics" Version="8.1.0" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.1.0" />
 		<PackageReference Include="Microsoft.Extensions.Configuration" Version="7.0.0" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Options" Version="7.0.1" />-->
+		<PackageReference Include="Microsoft.Extensions.Options" Version="7.0.1" />
 		<PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.39" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\WPFMvvM.Framework\WPFMvvM.Framework.csproj" />
+	  <Compile Update="View\ShellWindow.xaml.cs">
+	    <SubType>Code</SubType>
+	  </Compile>
 	</ItemGroup>
-
-	<ItemGroup>
-		<None Update="appsettings.json">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>			
-		</None>
-	</ItemGroup>
-
 
 </Project>
