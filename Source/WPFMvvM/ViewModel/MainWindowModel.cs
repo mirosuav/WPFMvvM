@@ -7,7 +7,7 @@ using WPFMvvM.Framework.ViewModel;
 
 namespace WPFMvvM.ViewModel;
 
-[BindView(typeof(MainWindow))]
+[UseWindow(typeof(MainWindow))]
 public partial class MainWindowModel : BaseWindowModel
 {
     private readonly IOptions<GeneralSettings> generalSettings;

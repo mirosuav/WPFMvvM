@@ -8,7 +8,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<InternalsVisibleTo Include="WPFMvvM.Tests" />
+		<InternalsVisibleTo Include="WPFMvvM.Framework.Tests" />
 	</ItemGroup>
 
 	<ItemGroup>

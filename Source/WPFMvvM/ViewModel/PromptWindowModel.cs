@@ -1,19 +1,34 @@
-﻿using WPFMvvM.Framework.Common;
+﻿using CommunityToolkit.Mvvm.Input;
+using WPFMvvM.Framework.Common;
 using WPFMvvM.Framework.Utils;
 using WPFMvvM.Framework.ViewModel;
 
 namespace WPFMvvM.ViewModel;
 
-[BindView(typeof(PromptWindow))]
+[UseWindow(typeof(PromptWindow))]
 public partial class PromptWindowModel : BaseWindowModel
 {
     public PromptWindowModel(IAppScope scope) : base(scope)
     {
     }
 
+    [RelayCommand]
+    async Task ThrowException()
+    {
+        await Task.Delay(100);
+        throw new Exception("Unobserved task exception from async void!");
+       
+    }
+
+
     protected override ValueTask InitializeInternal(CancellationToken cancelltoken, params object[] parameters)
     {
-        Title = "Are you sure ?";
+        Title = "Prompt window";
         return base.InitializeInternal(cancelltoken, parameters);
+    }
+
+    protected override ValueTask<bool> CheckUnsavedChanges()
+    {
+        return ValueTask.FromResult(MessageBox.Show("Are you sure to close ?", "Confirm closing", MessageBoxButton.YesNo) == MessageBoxResult.Yes);
     }
 }

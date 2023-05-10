@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows.Markup;
+using WPFMvvM.Framework.Exceptions;
 using WPFMvvM.Framework.GlobalHandlers;
 
 namespace WPFMvvM.Framework.Common;
@@ -19,6 +20,7 @@ public sealed partial class WPFApplicationHost : IWPFApplicationHost
     private ILogger<WPFApplicationHost>? logger;
     //keep global recipient references so their're not garbage collected when using WeakReferenceMessenger
     private List<IGlobalHandler>? globalHandlers;
+    private IGlobalExceptionHandler? exceptionHandler;
 
     //Main cancellation token source
     //get invoked when user press the close X on splash screen
@@ -40,17 +42,17 @@ public sealed partial class WPFApplicationHost : IWPFApplicationHost
 
     public int Run()
     {
-        ConfigureCommonAspects();
-        CreateHostedApp();
-        ConfigureGlobalExceptionHandlers(HostedApp!);
         CreateGlobalScope();
+        CreateHostedApp();
+        ConfigureCommonAspects();
         return HostedApp!.Run();
     }
 
     void ConfigureCommonAspects()
     {
-        if (options.AppCulture is not null)
-            WPFHelper.ConfigureWPFApplicationCulture(options.AppCulture);
+        WPFHelper.ConfigureWPFApplicationCulture(options?.AppCulture ?? ApplicationCulture.Current);
+
+        exceptionHandler = GlobalExceptionHandler.Create(HostedApp!, logger!, options?.GlobalExceptionHanlder);
 
         RegisterGlobalHandlers();
     }
@@ -96,13 +98,13 @@ public sealed partial class WPFApplicationHost : IWPFApplicationHost
         }
         catch (OperationCanceledException)
         {
-            HandleGlobalException("Application initialization cancelled.");
+            exceptionHandler!.Handle(LogLevel.Information, "Application initialization cancelled.");
             HostedApp!.Shutdown();
             return;
         }
         catch (Exception ex)
         {
-            HandleGlobalException("Unexpected error occured", ex);
+            exceptionHandler!.Handle(LogLevel.Critical, "Unexpected error occured", ex);
             HostedApp!.Shutdown();
             return;
         }
@@ -143,51 +145,16 @@ public sealed partial class WPFApplicationHost : IWPFApplicationHost
         }
     }
 
-    void ConfigureGlobalExceptionHandlers(Application app)
+    public void Dispose()
     {
-        //close application on explicit request
-        app.ShutdownMode = System.Windows.ShutdownMode.OnExplicitShutdown;
-        //and for UI unhandled exceptions
-        app.DispatcherUnhandledException += new DispatcherUnhandledExceptionEventHandler(HandleUiExceptions);
-        //Hookup exception handlers
-        //for application domain unhandled exceptions (ex. thread exceptions)
-        AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(HandleDomainExceptions);
-        TaskScheduler.UnobservedTaskException += HandleUnobservedTaskSchedulerException;
+        if (HostedApp is not null)
+        {
+            HostedApp.Startup += HostedApp_Startup;
+            HostedApp.Exit += HostedApp_Exit;
+        }
+        appScope?.Dispose();
+        exceptionHandler?.Dispose();
+        host?.Dispose();
+        HostedApp = null;
     }
-
-    void HandleDomainExceptions(object sender, UnhandledExceptionEventArgs e)
-        => HandleGlobalException("Domain unhandled exception catched.", e.ExceptionObject as Exception);
-
-    void HandleUiExceptions(object sender, DispatcherUnhandledExceptionEventArgs e)
-        => HandleGlobalException("Application unhandled exception catched.", e.Exception);
-
-    void HandleUnobservedTaskSchedulerException(object? sender, UnobservedTaskExceptionEventArgs e)
-    => HandleGlobalException("Application asynchronous exception occured", e.Exception);
-
-    void HandleGlobalException(string message, Exception? ex = null)
-    {
-        if (options.GlobalExceptionHanlder is not null)
-        {
-            options.GlobalExceptionHanlder.Invoke(message, ex);
-        }
-        else
-        {
-            LogAndShowCriticalException(message, ex);
-        }
-    }
-
-    void LogAndShowCriticalException(string message, Exception? ex = null)
-    {
-        if (ex is null)
-        {
-            logger!.LogCritical(message);
-            MessageBox.Show(message, "Error");
-        }
-        else
-        {
-            logger!.LogCritical(ex, message);
-            MessageBox.Show($"{message}{Environment.NewLine}{ex?.Message}", "Error");
-        }
-    }
-
 }

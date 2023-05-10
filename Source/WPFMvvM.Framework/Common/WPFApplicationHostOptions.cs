@@ -1,10 +1,9 @@
 ﻿using System.Security.AccessControl;
+using WPFMvvM.Framework.Exceptions;
 
 namespace WPFMvvM.Framework.Common;
 
 public delegate ValueTask AppStartupDelegate(IAppScope mainAppScope, IServiceProvider services, string[]? args);
-
-public delegate void ExceptionHandler(string message, Exception? exception);
 
 internal class WPFApplicationHostOptions
 {

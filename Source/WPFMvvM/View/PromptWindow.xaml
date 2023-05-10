@@ -12,7 +12,8 @@
     WindowStyle="SingleBorderWindow"
     mc:Ignorable="d">
     <StackPanel Orientation="Vertical">
-        <TextBlock Text="{Binding Title}" />
-        <Button Content="Close" Command="{Binding CloseCommand}" />
+        <TextBlock Text="{Binding Title}" Margin="20" />
+        <Button Command="{Binding CloseCommand}" Content="Close" Margin="20" />
+        <Button Command="{Binding ThrowExceptionCommand}" Content="Throw exception" Margin="20" />
     </StackPanel>
 </Window>

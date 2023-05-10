@@ -1,10 +1,10 @@
 ﻿namespace WPFMvvM.Framework.Utils;
 
 /// <summary>
-/// Use on ViewModel class to denotes the type of UI view that it will be bound to.
+/// Use on ViewModel class to denotes the Window type to use and bind.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
-public class BindViewAttribute : Attribute
+public class UseWindowAttribute : Attribute
 {
     public Type ViewType { get; }
 
@@ -12,7 +12,7 @@ public class BindViewAttribute : Attribute
 
     public int ViewWidth { get; set; }
 
-    public BindViewAttribute(Type viewType)
+    public UseWindowAttribute(Type viewType)
     {
         ViewType = viewType;
         ViewHeight = 600;

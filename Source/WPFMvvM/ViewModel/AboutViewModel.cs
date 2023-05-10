@@ -4,7 +4,7 @@ using WPFMvvM.Framework.ViewModel;
 
 namespace WPFMvvM.ViewModel;
 
-[BindView(typeof(AboutView))]
+[UseWindow(typeof(AboutView))]
 public partial class AboutViewModel : BaseWindowModel
 {
     [ObservableProperty]

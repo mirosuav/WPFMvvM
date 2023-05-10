@@ -28,7 +28,7 @@ public class Program
         appHost.Run();        
     }
 
-    private static void GlobalExcepionHandler(string message, Exception? exception = null)
+    private static void GlobalExcepionHandler(LogLevel logLevel, string message, Exception? exception = null)
     {
         throw new NotImplementedException();
     }

@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using WPFMvvM.Framework.Exceptions;
 using WPFMvvM.Framework.GlobalHandlers;
 
 namespace WPFMvvM.Framework.Common;
@@ -14,12 +15,12 @@ public sealed class WPFApplicationHostBuilder
         return new WPFApplicationHostBuilder(typeof(TApp), typeof(TMainWindowModel), args);
     }
 
-    private WPFApplicationHostBuilder(Type appType, Type mainWindowModelType, string[]? args = null)
+    private WPFApplicationHostBuilder(Type applicationType, Type mainWindowModelType, string[]? args = null)
     {
-        Guard.IsNotNull(appType, nameof(appType));
+        Guard.IsNotNull(applicationType, nameof(applicationType));
         Guard.IsNotNull(mainWindowModelType, nameof(mainWindowModelType));
 
-        _hostOptions = new WPFApplicationHostOptions(appType, mainWindowModelType, WPFHelper.ReadAppInfo(appType), args);
+        _hostOptions = new WPFApplicationHostOptions(applicationType, mainWindowModelType, AppInfo.Create(applicationType.Assembly), args);
         _hostBuilder = Host.CreateDefaultBuilder(args)
             .ConfigureServices(ConfigureServicesInternal)
             .ConfigureAppConfiguration(ConfigureAppConfigurationInternal);

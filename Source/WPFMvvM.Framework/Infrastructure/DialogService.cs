@@ -53,8 +53,8 @@ public class DialogService : IDialogService
 
     ContentControl ResolveAttributedView(BaseWindowModel windowModel)
     {
-        var vmAttr = windowModel.GetType().GetCustomAttribute<BindViewAttribute>();
-        Guard.IsNotNull(vmAttr, $"No {nameof(BindViewAttribute)} defined on {windowModel.GetType().FullName}");
+        var vmAttr = windowModel.GetType().GetCustomAttribute<UseWindowAttribute>();
+        Guard.IsNotNull(vmAttr, $"No {nameof(UseWindowAttribute)} defined on {windowModel.GetType().FullName}");
 
         var view = Activator.CreateInstance(vmAttr.ViewType) as ContentControl;
         Guard.IsNotNull(view, $"Could not create an instance of UI part: {vmAttr.ViewType.FullName}");
