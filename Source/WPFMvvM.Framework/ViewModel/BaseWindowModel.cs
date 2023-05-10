@@ -21,7 +21,7 @@ public abstract partial class BaseWindowModel : BaseViewModel
 
     public event EventHandler? OnClose;
 
-    protected BaseWindowModel(IAppScope scope) : base(scope)
+    public BaseWindowModel(IAppScope scope) : base(scope)
     {
     }
 

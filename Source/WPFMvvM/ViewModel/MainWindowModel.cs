@@ -38,13 +38,16 @@ public partial class MainWindowModel : BaseWindowModel
     [RelayCommand]
     async Task About(CancellationToken token)
     {
+        ContenViewModel = Scope.ResolveViewModel<AboutViewModel>();
+        await ContenViewModel.Initialize(token);
+    }
 
+    [RelayCommand]
+    async Task AboutDialog(CancellationToken token)
+    {
         var vm = Scope.CreateNewScope().ResolveViewModel<AboutViewModel>();
         await vm.Initialize(token);
         await Scope.WindowService.ShowDialog(vm, token);
-
-        //ContenViewModel = Scope.ResolveViewModel<AboutViewModel>();
-        //await ContenViewModel.Initialize(token);
     }
 
     [RelayCommand]

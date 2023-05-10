@@ -30,9 +30,10 @@
             <MenuItem Header="_File">
                 <MenuItem Command="{Binding DashboardCommand}" Header="_Dashboard" />
                 <MenuItem Command="{Binding AboutCommand}" Header="_About" />
+                <MenuItem Command="{Binding AboutDialogCommand}" Header="A_bout dialog" />
                 <MenuItem Command="{Binding AskUserCommand}" Header="A_sk user" />
                 <Separator />
-                <MenuItem Command="{Binding ExitCommand}" Header="_Exit" />
+                <MenuItem Command="{Binding ExitCommand}" Header="E_xit" />
             </MenuItem>
         </Menu>
 

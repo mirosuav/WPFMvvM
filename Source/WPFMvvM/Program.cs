@@ -1,13 +1,9 @@
-﻿using CommunityToolkit.Diagnostics;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Globalization;
-using System.Windows.Navigation;
 using WPFMvvM.Framework;
-using WPFMvvM.Framework.Utils;
 using WPFMvvM.ViewModel;
-using static System.Formats.Asn1.AsnWriter;
 
 namespace WPFMvvM;
 
