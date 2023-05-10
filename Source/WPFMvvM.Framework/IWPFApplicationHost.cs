@@ -1,4 +1,4 @@
-﻿namespace WPFMvvM.Framework.Common
+﻿namespace WPFMvvM.Framework
 {
     public interface IWPFApplicationHost : IDisposable
     {

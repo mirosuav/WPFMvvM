@@ -1,7 +1,6 @@
-﻿using System.Security.AccessControl;
-using WPFMvvM.Framework.Exceptions;
+﻿using WPFMvvM.Framework.Exceptions;
 
-namespace WPFMvvM.Framework.Common;
+namespace WPFMvvM.Framework;
 
 public delegate ValueTask AppStartupDelegate(IAppScope mainAppScope, IServiceProvider services, string[]? args);
 
@@ -13,7 +12,7 @@ internal class WPFApplicationHostOptions
     public readonly AppInfo AppInfo;
 
     public AppStartupDelegate? OnAppStartup;
-    public ApplicationCulture? AppCulture; 
+    public ApplicationCulture? AppCulture;
     public ExceptionHandler? GlobalExceptionHanlder;
 
     public WPFApplicationHostOptions(Type appType, Type mainWindowType, AppInfo appInfo, string[]? startArgs)

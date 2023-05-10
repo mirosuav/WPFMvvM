@@ -1,6 +1,4 @@
-﻿using WPFMvvM.Framework.Common;
-
-namespace WPFMvvM;
+﻿namespace WPFMvvM;
 
 public partial class App : Application
 {

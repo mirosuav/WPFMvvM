@@ -1,4 +1,4 @@
-﻿using WPFMvvM.Framework.Common;
+﻿using WPFMvvM.Framework;
 using WPFMvvM.Framework.ViewModel;
 
 namespace WPFMvvM.ViewModel;

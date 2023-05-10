@@ -1,6 +1,6 @@
-﻿using WPFMvvM.Framework.GlobalHandlers;
+﻿using WPFMvvM.Framework.Handlers;
 
-namespace WPFMvvM.Framework.Common;
+namespace WPFMvvM.Framework;
 
 /// <summary>
 /// Application scope serves as central communication hub for all application sections

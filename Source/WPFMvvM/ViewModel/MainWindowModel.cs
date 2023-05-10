@@ -1,6 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using WPFMvvM.Framework.Common;
+using WPFMvvM.Framework;
 using WPFMvvM.Framework.Messages;
 using WPFMvvM.Framework.Utils;
 using WPFMvvM.Framework.ViewModel;

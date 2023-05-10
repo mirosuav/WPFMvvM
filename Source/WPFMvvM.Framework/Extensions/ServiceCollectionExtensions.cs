@@ -1,4 +1,4 @@
-﻿using WPFMvvM.Framework.GlobalHandlers;
+﻿using WPFMvvM.Framework.Handlers;
 
 namespace WPFMvvM.Framework.Extensions;
 

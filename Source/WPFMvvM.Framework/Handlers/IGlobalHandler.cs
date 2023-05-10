@@ -1,4 +1,4 @@
-﻿namespace WPFMvvM.Framework.GlobalHandlers;
+﻿namespace WPFMvvM.Framework.Handlers;
 
 /// <summary>
 /// Marker interface to denote all handlers that are resolved in advance in global AppScope

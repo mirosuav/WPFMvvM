@@ -1,4 +1,4 @@
-﻿namespace WPFMvvM.Framework.Infrastructure;
+﻿namespace WPFMvvM.Framework.UI;
 
 /// <summary>
 /// Binds Window to WindowModel using events

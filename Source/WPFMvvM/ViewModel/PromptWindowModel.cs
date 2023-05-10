@@ -1,5 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.Input;
-using WPFMvvM.Framework.Common;
+using WPFMvvM.Framework;
 using WPFMvvM.Framework.Utils;
 using WPFMvvM.Framework.ViewModel;
 
@@ -27,8 +27,9 @@ public partial class PromptWindowModel : BaseWindowModel
         return base.InitializeInternal(cancelltoken, parameters);
     }
 
-    protected override ValueTask<bool> CheckUnsavedChanges()
+    protected override ValueTask<bool> CheckUnsavedChanges(CancellationToken cancelltoken)
     {
+        cancelltoken.ThrowIfCancellationRequested();
         return ValueTask.FromResult(MessageBox.Show("Are you sure to close ?", "Confirm closing", MessageBoxButton.YesNo) == MessageBoxResult.Yes);
     }
 }

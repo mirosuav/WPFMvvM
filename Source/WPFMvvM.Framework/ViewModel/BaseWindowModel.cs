@@ -66,7 +66,7 @@ public abstract partial class BaseWindowModel : BaseViewModel
         if (IsDisposed) return ValueTask.FromResult(false);
         if (IsClosed)
             return ValueTask.FromResult(false);
-        return CheckUnsavedChanges();
+        return CheckUnsavedChanges(token);
     }
 
     protected virtual ValueTask AfterClose(CancellationToken token)

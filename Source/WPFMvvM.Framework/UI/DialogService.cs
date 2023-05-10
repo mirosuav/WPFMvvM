@@ -1,9 +1,7 @@
 ﻿using System.Reflection;
 using System.Windows.Controls;
 
-using WPFMvvM.Framework.View;
-
-namespace WPFMvvM.Framework.Infrastructure;
+namespace WPFMvvM.Framework.UI;
 
 /// <summary>
 /// Creates and shows Windows for BaseWindowModel

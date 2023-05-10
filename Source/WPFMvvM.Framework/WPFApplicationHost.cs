@@ -1,13 +1,7 @@
-﻿using System;
-using System.Diagnostics;
-using System.Globalization;
-using System.IO;
-using System.Runtime.InteropServices;
-using System.Windows.Markup;
-using WPFMvvM.Framework.Exceptions;
-using WPFMvvM.Framework.GlobalHandlers;
+﻿using WPFMvvM.Framework.Exceptions;
+using WPFMvvM.Framework.Handlers;
 
-namespace WPFMvvM.Framework.Common;
+namespace WPFMvvM.Framework;
 
 /// <summary>
 /// WPF Application host
@@ -65,7 +59,7 @@ public sealed partial class WPFApplicationHost : IWPFApplicationHost
     }
     void CreateHostedApp()
     {
-        HostedApp = (Activator.CreateInstance(options.HostedAppType!, options.StartArgs) as Application);
+        HostedApp = Activator.CreateInstance(options.HostedAppType!, options.StartArgs) as Application;
         Guard.IsNotNull(HostedApp, $"Could not create hosted application of type {options.HostedAppType.FullName}!");
 
         HostedApp.Startup += HostedApp_Startup;

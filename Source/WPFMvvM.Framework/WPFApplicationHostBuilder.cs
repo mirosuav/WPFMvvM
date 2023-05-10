@@ -1,8 +1,8 @@
 ﻿using System.Globalization;
 using WPFMvvM.Framework.Exceptions;
-using WPFMvvM.Framework.GlobalHandlers;
+using WPFMvvM.Framework.Handlers;
 
-namespace WPFMvvM.Framework.Common;
+namespace WPFMvvM.Framework;
 
 public sealed class WPFApplicationHostBuilder
 {

@@ -1,4 +1,4 @@
-﻿namespace WPFMvvM.Framework.GlobalHandlers;
+﻿namespace WPFMvvM.Framework.Handlers;
 
 public class ApplicationScopeRequestHanlder : IGlobalHandler, IRecipient<ApplicationShutdownNotification>
 {

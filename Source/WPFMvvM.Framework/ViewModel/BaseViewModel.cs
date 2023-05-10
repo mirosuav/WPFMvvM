@@ -1,14 +1,9 @@
-﻿using WPFMvvM.Framework.Common;
-using WPFMvvM.Framework.Messages;
-
-namespace WPFMvvM.Framework.ViewModel;
+﻿namespace WPFMvvM.Framework.ViewModel;
 
 public abstract partial class BaseViewModel : ObservableValidator, IDisposable
 {
     protected readonly IAppScope Scope;
     protected bool IsDisposed;
-
-    public object? View { get; internal set; }
 
     protected BaseViewModel(IAppScope scope)
     {
@@ -30,7 +25,7 @@ public abstract partial class BaseViewModel : ObservableValidator, IDisposable
     /// <summary>
     /// Validate current screen before leaving
     /// </summary>
-    protected virtual ValueTask<bool> CheckUnsavedChanges()
+    protected virtual ValueTask<bool> CheckUnsavedChanges(CancellationToken cancelltoken)
     {
         return ValueTask.FromResult(true);
     }

@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 
-namespace WPFMvvM.Framework.Common;
+namespace WPFMvvM.Framework.Utils;
 
 public record ApplicationCulture(CultureInfo AppCulture, CultureInfo UICulture)
 {

@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
-using WPFMvvM.Framework.Common;
+using WPFMvvM.Framework;
 using WPFMvvM.Framework.Utils;
 using WPFMvvM.ViewModel;
 

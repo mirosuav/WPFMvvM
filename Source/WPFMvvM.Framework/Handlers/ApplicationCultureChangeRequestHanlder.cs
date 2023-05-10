@@ -1,4 +1,4 @@
-﻿namespace WPFMvvM.Framework.GlobalHandlers;
+﻿namespace WPFMvvM.Framework.Handlers;
 
 internal class ApplicationCultureChangeHanlder : IGlobalHandler, IRecipient<ApplicationCultureChangeNotification>
 {
