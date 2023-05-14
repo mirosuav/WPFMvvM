@@ -24,7 +24,7 @@ internal class AppScope : IDisposable, IAppScope
 
     public IMessenger Messenger => _messenger;
 
-    public IDialogService WindowService => _windowService ??= _services.GetRequiredService<IDialogService>();
+    public IDialogService DialogService => _windowService ??= _services.GetRequiredService<IDialogService>();
 
     public IAppScope CreateNewScope()
     {

@@ -9,12 +9,10 @@ namespace WPFMvvM.Framework;
 /// </summary>
 public sealed partial class WPFApplicationHost : IWPFApplicationHost
 {
-
     private IAppScope? appScope;
     private ILogger<WPFApplicationHost>? logger;
     //keep global recipient references so their're not garbage collected when using WeakReferenceMessenger
-    private List<IGlobalHandler>? globalHandlers;
-    private IGlobalExceptionHandler? exceptionHandler;
+    private List<IGlobalMessageHandler>? globalMessageHandlers;
 
     //Main cancellation token source
     //get invoked when user press the close X on splash screen
@@ -22,8 +20,7 @@ public sealed partial class WPFApplicationHost : IWPFApplicationHost
     private readonly WPFApplicationHostOptions options;
     private readonly IHost host;
 
-
-
+    internal IGlobalExceptionHandler? GlobalExceptionHandler;
 
     public Application? HostedApp { get; private set; }
     public IServiceProvider Services => host.Services;
@@ -42,21 +39,6 @@ public sealed partial class WPFApplicationHost : IWPFApplicationHost
         return HostedApp!.Run();
     }
 
-    void ConfigureCommonAspects()
-    {
-        WPFHelper.ConfigureWPFApplicationCulture(options?.AppCulture ?? ApplicationCulture.Current);
-
-        exceptionHandler = GlobalExceptionHandler.Create(HostedApp!, logger!, options?.GlobalExceptionHanlder);
-
-        RegisterGlobalHandlers();
-    }
-
-    void RegisterGlobalHandlers()
-    {
-        var messenger = host.Services.GetRequiredService<IMessenger>();
-        globalHandlers = host.Services.GetServices<IGlobalHandler>().ToList();
-        globalHandlers.ForEach(recipient => messenger.RegisterAll(recipient));
-    }
     void CreateHostedApp()
     {
         HostedApp = Activator.CreateInstance(options.HostedAppType!, options.StartArgs) as Application;
@@ -66,12 +48,27 @@ public sealed partial class WPFApplicationHost : IWPFApplicationHost
         HostedApp.Exit += HostedApp_Exit;
     }
 
+    void ConfigureCommonAspects()
+    {
+        CultureExtensions.ConfigureAppCulture(options?.AppCulture ?? ApplicationCulture.Current);
+
+        GlobalExceptionHandler = Exceptions.GlobalExceptionHandler.Create(HostedApp!, logger!, options?.GlobalExceptionHanlder);
+
+        RegisterGlobalMessageHandlers();
+    }
+
+    void RegisterGlobalMessageHandlers()
+    {
+        var messenger = host.Services.GetRequiredService<IMessenger>();
+        globalMessageHandlers = host.Services.GetServices<IGlobalMessageHandler>().ToList();
+        globalMessageHandlers.ForEach(recipient => messenger.RegisterAll(recipient));
+    }
+
     void CreateGlobalScope()
     {
         appScope = host.Services.GetRequiredService<IAppScope>();
         logger = host.Services.GetRequiredService<ILogger<WPFApplicationHost>>();
     }
-
 
     async void HostedApp_Startup(object sender, StartupEventArgs e)
     {
@@ -92,13 +89,13 @@ public sealed partial class WPFApplicationHost : IWPFApplicationHost
         }
         catch (OperationCanceledException)
         {
-            exceptionHandler!.Handle(LogLevel.Information, "Application initialization cancelled.");
+            GlobalExceptionHandler!.Handle(LogLevel.Information, "Application initialization cancelled.");
             HostedApp!.Shutdown();
             return;
         }
         catch (Exception ex)
         {
-            exceptionHandler!.Handle(LogLevel.Critical, "Unexpected error occured", ex);
+            GlobalExceptionHandler!.Handle(LogLevel.Critical, "Unexpected error occured", ex);
             HostedApp!.Shutdown();
             return;
         }
@@ -114,7 +111,7 @@ public sealed partial class WPFApplicationHost : IWPFApplicationHost
         ArgumentNullException.ThrowIfNull(mainWindowModel);
 
         await mainWindowModel.Initialize(appScope!.CancellToken);
-        mainWindowModel.OnClose += MainWindowModel_OnClose;
+        mainWindowModel.OnClosed += MainWindowModel_OnClose;
 
         var windowService = host.Services.GetRequiredService<IDialogService>();
         await windowService.Show(mainWindowModel, appScope.CancellToken);
@@ -124,7 +121,7 @@ public sealed partial class WPFApplicationHost : IWPFApplicationHost
     {
         if (sender is BaseWindowModel windowModel)
         {
-            windowModel.OnClose -= MainWindowModel_OnClose;
+            windowModel.OnClosed -= MainWindowModel_OnClose;
             HostedApp?.Shutdown();
         }
     }
@@ -143,11 +140,11 @@ public sealed partial class WPFApplicationHost : IWPFApplicationHost
     {
         if (HostedApp is not null)
         {
-            HostedApp.Startup += HostedApp_Startup;
-            HostedApp.Exit += HostedApp_Exit;
+            HostedApp.Startup -= HostedApp_Startup;
+            HostedApp.Exit -= HostedApp_Exit;
         }
         appScope?.Dispose();
-        exceptionHandler?.Dispose();
+        GlobalExceptionHandler?.Dispose();
         host?.Dispose();
         HostedApp = null;
     }

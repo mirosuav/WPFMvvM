@@ -1,9 +1,9 @@
 ﻿namespace WPFMvvM.Framework.Handlers;
 
-internal class ApplicationCultureChangeHanlder : IGlobalHandler, IRecipient<ApplicationCultureChangeNotification>
+internal class ApplicationCultureChangeHanlder : IGlobalMessageHandler, IRecipient<ApplicationCultureChangeNotification>
 {
     public void Receive(ApplicationCultureChangeNotification appCulture)
     {
-        WPFHelper.ConfigureWPFApplicationCulture(appCulture.Culture);
+        CultureExtensions.ConfigureAppCulture(appCulture.Culture);
     }
 }

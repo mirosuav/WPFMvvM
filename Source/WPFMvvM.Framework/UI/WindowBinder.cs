@@ -1,4 +1,6 @@
-﻿namespace WPFMvvM.Framework.UI;
+﻿using WPFMvvM.Framework.Exceptions;
+
+namespace WPFMvvM.Framework.UI;
 
 /// <summary>
 /// Binds Window to WindowModel using events
@@ -6,61 +8,82 @@
 /// </summary>
 public class WindowBinder : IWindowBinder
 {
-    private readonly IMessenger _messenger;
+    private readonly IMessenger messenger;
+    private readonly IGlobalExceptionHandler exceptionHandler;
 
-    public WindowBinder(IMessenger messenger)
+    public WindowBinder(IMessenger messenger, IGlobalExceptionHandler exceptionHandler)
     {
-        _messenger = messenger;
+        Guard.IsNotNull(messenger);
+        Guard.IsNotNull(exceptionHandler);
+        this.messenger = messenger;
+        this.exceptionHandler = exceptionHandler;
     }
 
-    public void BindEvents(Window window, BaseWindowModel windowModel)
+    public void BindViewModel(Window window, BaseWindowModel windowModel)
     {
+        window.DataContext = windowModel;
         window.Activated += Window_Activated;
         window.Closing += Window_Closing;
         window.Closed += Window_Closed;
-        _messenger.Register<Window, WindowCloseRequests, Guid>(window, windowModel.WindowRequestToken, WindowCloseRequestHandler);
+        messenger.Register<Window, SelfWindowCloseRequest, Guid>(window, windowModel.WindowRequestToken, WindowCloseRequestHandler);
     }
 
-    void WindowCloseRequestHandler(Window window, WindowCloseRequests message)
+    void WindowCloseRequestHandler(Window window, SelfWindowCloseRequest message)
     {
+        //prevent cycle calling window model
+        window.Closing -= Window_Closing;
         window.Close();
         message.Reply(true);
     }
 
     async void Window_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
     {
-        if (sender is Window window && window.DataContext is BaseWindowModel windowModel)
+        try
         {
-            if (windowModel.IsClosed)
+            if (sender is Window window && window.DataContext is BaseWindowModel windowModel)
             {
-                e.Cancel = false;
+                var request = new WindowClosingRequest { UITriggered = true };
+                await windowModel.CloseCommand.ExecuteAsync(request);
+                e.Cancel = !request.Response;
             }
-            else
-            {
-                var param = new ClosingCommandParam { IsTriggeredFromUI = true };
-                //WindowModel will call Close 
-                await windowModel.CloseCommand.ExecuteAsync(param);
-                e.Cancel = !param.CanClose;
-            }
+        }
+        catch (Exception ex)
+        {
+            exceptionHandler.Handle(LogLevel.Error, "Error in window closing event handler", ex);
         }
     }
 
     async void Window_Activated(object? sender, EventArgs e)
     {
-        if (sender is Window window && window.DataContext is BaseWindowModel windowModel)
+        try
         {
-            await windowModel.ActivateCommand.ExecuteAsync(null);
+            if (sender is Window window && window.DataContext is BaseWindowModel windowModel)
+            {
+                await windowModel.ActivateCommand.ExecuteAsync(null);
+            }
+        }
+        catch (Exception ex)
+        {
+            exceptionHandler.Handle(LogLevel.Error, "Error in window activated event handler", ex);
         }
     }
 
     void Window_Closed(object? sender, EventArgs e)
     {
-        if (sender is Window window)
+        try
         {
-            window.Activated -= Window_Activated;
-            window.Closing -= Window_Closing;
-            window.Closed -= Window_Closed;
-            _messenger.UnregisterAll(window);
+            if (sender is Window window)
+            {
+                window.Activated -= Window_Activated;
+                window.Closing -= Window_Closing;
+                window.Closed -= Window_Closed;
+                messenger.UnregisterAll(window);
+                window.DataContext = null;
+            }
+        }
+        catch (Exception ex)
+        {
+            exceptionHandler.Handle(LogLevel.Error, "Error in window closed event handler", ex);
         }
     }
 }

@@ -38,12 +38,6 @@ public sealed class WPFApplicationHostBuilder
         return this;
     }
 
-    /// <summary>
-    /// Setup global exception handler method for :
-    /// AppDomain.CurrentDomain.UnhandledException, 
-    /// Application.Current.DispatcherUnhandledException, 
-    /// TaskScheduler.UnobservedTaskException.
-    /// </summary>
     public WPFApplicationHostBuilder SetupGlobalExceptionHanlder(ExceptionHandler globalExceptionHanlder)
     {
         _hostOptions.GlobalExceptionHanlder = globalExceptionHanlder;
@@ -80,6 +74,7 @@ public sealed class WPFApplicationHostBuilder
     void ConfigureServicesInternal(HostBuilderContext context, IServiceCollection services)
     {
         services.AddSingleton<IWPFApplicationHost>(_ => _host!);
+        services.AddSingleton(_ => _host!.GlobalExceptionHandler!);
 
         //messenger registered as scope
         services.AddSingleton<IMessenger, StrongReferenceMessenger>();
@@ -89,7 +84,7 @@ public sealed class WPFApplicationHostBuilder
         services.AddScoped<IWindowBinder, WindowBinder>();
         services.AddScoped<IDialogService, DialogService>();
 
-        services.AddSingletonWithSelf<IGlobalHandler, ApplicationScopeRequestHanlder>();
+        services.AddSingletonWithSelf<IGlobalMessageHandler, ApplicationRequestHanlder>();
 
         services.Configure<AppInfo>((ai) => _hostOptions.AppInfo!.CopyTo(ai));
     }

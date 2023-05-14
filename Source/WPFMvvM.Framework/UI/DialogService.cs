@@ -37,9 +37,7 @@ public class DialogService : IDialogService
 
         EnsureWindowParent(window);
 
-        window.DataContext = windowModel;
-
-        _windowBinder.BindEvents(window, windowModel);
+        _windowBinder.BindViewModel(window, windowModel);
 
         return window;
     }

@@ -47,7 +47,7 @@ public partial class MainWindowModel : BaseWindowModel
     {
         var vm = Scope.CreateNewScope().ResolveViewModel<AboutViewModel>();
         await vm.Initialize(token);
-        await Scope.WindowService.ShowDialog(vm, token);
+        await Scope.DialogService.ShowDialog(vm, token);
     }
 
     [RelayCommand]
@@ -55,7 +55,7 @@ public partial class MainWindowModel : BaseWindowModel
     {
         var vm = Scope.CreateNewScope().ResolveViewModel<PromptWindowModel>();
         await vm.Initialize(token);
-        await Scope.WindowService.ShowDialog(vm, token);
+        await Scope.DialogService.ShowDialog(vm, token);
     }
 
     [RelayCommand()]

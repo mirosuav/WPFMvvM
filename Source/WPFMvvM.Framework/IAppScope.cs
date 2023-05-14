@@ -2,7 +2,7 @@
 
 public interface IAppScope : IDisposable
 {
-    IDialogService WindowService { get; }
+    IDialogService DialogService { get; }
 
     IMessenger Messenger { get; }
 

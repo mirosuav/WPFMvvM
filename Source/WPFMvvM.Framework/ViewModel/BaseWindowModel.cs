@@ -2,14 +2,11 @@
 
 namespace WPFMvvM.Framework.ViewModel;
 
-public class ClosingCommandParam
-{
-    public bool CanClose { get; set; } = false;
-    public bool IsTriggeredFromUI { get; set; } = false;
-}
-
 public abstract partial class BaseWindowModel : BaseViewModel
 {
+    /// <summary>
+    /// Unique messaging token used to communicate between vindow model and its view
+    /// </summary>
     protected internal readonly Guid WindowRequestToken = Guid.NewGuid();
 
     [ObservableProperty]
@@ -17,9 +14,9 @@ public abstract partial class BaseWindowModel : BaseViewModel
 
     protected internal bool IsClosed { get; private set; }
 
-    public event EventHandler? OnActivation;
+    public event EventHandler? OnActivated;
 
-    public event EventHandler? OnClose;
+    public event EventHandler? OnClosed;
 
     public BaseWindowModel(IAppScope scope) : base(scope)
     {
@@ -32,27 +29,8 @@ public abstract partial class BaseWindowModel : BaseViewModel
     public async Task Activate(CancellationToken token)
     {
         if (IsDisposed) return;
-        OnActivation?.Invoke(this, EventArgs.Empty);
         await Activating(token);
-    }
-
-    /// <summary>
-    /// Request window close
-    /// </summary>
-    [RelayCommand(AllowConcurrentExecutions = false)]
-    public async Task Close(ClosingCommandParam param, CancellationToken token)
-    {
-        if (IsDisposed || IsClosed) return;
-        param ??= new ClosingCommandParam();
-        param.CanClose = await CanClose(token);
-        if (param.CanClose)
-        {
-            OnClose?.Invoke(this, EventArgs.Empty);
-            IsClosed = true;
-            if (!param.IsTriggeredFromUI)
-                await Scope.Messenger.Send(new WindowCloseRequests(), WindowRequestToken);
-            await AfterClose(token);
-        }
+        OnActivated?.Invoke(this, EventArgs.Empty);
     }
 
     protected virtual Task Activating(CancellationToken token)
@@ -61,15 +39,44 @@ public abstract partial class BaseWindowModel : BaseViewModel
         return Task.CompletedTask;
     }
 
-    protected internal ValueTask<bool> CanClose(CancellationToken token)
+    /// <summary>
+    /// Force closing window
+    /// </summary>
+    [RelayCommand(AllowConcurrentExecutions = false)]
+    public async Task Close(WindowClosingRequest? request, CancellationToken token)
     {
-        if (IsDisposed) return ValueTask.FromResult(false);
-        if (IsClosed)
+        request ??= new();
+        if (IsDisposed || IsClosed)
+        {
+            request.Reply(false);
+            return;
+        };
+
+        var canClose = request.Force ? true : await CanClose(request, token);
+        request.Reply(canClose);
+        if (!canClose)
+            return;
+
+        if (!request.UITriggered)
+            await Scope.Messenger.Send(new SelfWindowCloseRequest(), WindowRequestToken);
+
+        IsClosed = true;
+        await AfterClose(request, token);
+        OnClosed?.Invoke(this, EventArgs.Empty);
+    }
+
+    protected internal virtual ValueTask<bool> CanClose(WindowClosingRequest? request, CancellationToken token)
+    {
+        if (IsDisposed || IsClosed)
             return ValueTask.FromResult(false);
+        
+        if (request?.Force ?? false)
+            return ValueTask.FromResult(true);
+
         return CheckUnsavedChanges(token);
     }
 
-    protected virtual ValueTask AfterClose(CancellationToken token)
+    protected virtual ValueTask AfterClose(WindowClosingRequest? request, CancellationToken token)
     {
         if (IsDisposed) return ValueTask.CompletedTask;
         return ValueTask.CompletedTask;

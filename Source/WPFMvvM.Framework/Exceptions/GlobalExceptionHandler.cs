@@ -45,7 +45,7 @@ internal class GlobalExceptionHandler : IDisposable, IGlobalExceptionHandler
     void HandleUnobservedTaskSchedulerException(object? sender, UnobservedTaskExceptionEventArgs e)
     => exceptionHandler(LogLevel.Critical, "Application asynchronous exception occured", e.Exception);
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2254:Template should be a static expression", Justification = "<Pending>")]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2254:Template should be a static expression", Justification = "This is global exception handler.")]
     void LogAndShowCriticalException(LogLevel logLevel, string message, Exception? ex = null)
     {
         if (ex is null)

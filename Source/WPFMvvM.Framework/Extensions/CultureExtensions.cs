@@ -1,11 +1,11 @@
 ﻿using System.Globalization;
 using System.Windows.Markup;
 
-namespace WPFMvvM.Framework.Utils;
+namespace WPFMvvM.Framework.Extensions;
 
-internal static class WPFHelper
+internal static class CultureExtensions
 {
-    public static void ConfigureWPFApplicationCulture(ApplicationCulture appCulture)
+    public static void ConfigureAppCulture(ApplicationCulture appCulture)
     {
         Guard.IsNotNull(appCulture);
 

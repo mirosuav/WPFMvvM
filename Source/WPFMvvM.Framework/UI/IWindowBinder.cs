@@ -2,6 +2,6 @@
 {
     public interface IWindowBinder
     {
-        void BindEvents(Window window, BaseWindowModel windowModel);
+        void BindViewModel(Window window, BaseWindowModel windowModel);
     }
 }

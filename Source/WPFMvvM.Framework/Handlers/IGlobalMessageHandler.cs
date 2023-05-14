@@ -6,4 +6,4 @@
 /// Live instances of recipients of this type are required by IMessanger
 /// Register these implementations of this interface as singletons
 /// </summary>
-public interface IGlobalHandler { }
+public interface IGlobalMessageHandler { }

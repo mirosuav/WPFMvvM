@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 
 namespace WPFMvvM.Framework.Utils;
 
-public record AppInfo
+public class AppInfo
 {
     public string? Environment;
     public Guid? Id;

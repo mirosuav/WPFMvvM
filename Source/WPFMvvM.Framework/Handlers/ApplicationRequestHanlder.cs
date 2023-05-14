@@ -1,10 +1,10 @@
 ﻿namespace WPFMvvM.Framework.Handlers;
 
-public class ApplicationScopeRequestHanlder : IGlobalHandler, IRecipient<ApplicationShutdownNotification>
+public class ApplicationRequestHanlder : IGlobalMessageHandler, IRecipient<ApplicationShutdownNotification>
 {
     public readonly IWPFApplicationHost appHost;
 
-    public ApplicationScopeRequestHanlder(IWPFApplicationHost appHost)
+    public ApplicationRequestHanlder(IWPFApplicationHost appHost)
     {
         this.appHost = appHost;
     }
