@@ -13,7 +13,7 @@ public class DialogService : IDialogService
 
     public DialogService(IWPFApplicationHost appHost, IWindowBinder windowBinder)
     {
-        _mainAppWindow = appHost.HostedApp!.MainWindow;
+        _mainAppWindow = appHost.HostedApplication.MainWindow;
         _windowBinder = windowBinder;
     }
 

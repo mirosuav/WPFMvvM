@@ -1,9 +1,16 @@
-﻿namespace WPFMvvM.Framework
+﻿namespace WPFMvvM.Framework;
+
+public interface IWPFApplicationHost
 {
-    public interface IWPFApplicationHost : IDisposable
-    {
-        Application? HostedApp { get; }
-        IServiceProvider Services { get; }
-        int Run();
-    }
+    Application HostedApplication { get; }
+}
+
+public interface IWPFApplicationHost<TApp> where TApp : Application
+{
+    ApplicationCulture? AppCulture { get; }
+    AppInfo? AppInfo { get; }
+    CancellationToken CancellToken { get; }
+    ILogger<TApp>? Logger { get; }
+    IAppScope? MainAppScope { get; }
+    IServiceProvider Services { get; }
 }

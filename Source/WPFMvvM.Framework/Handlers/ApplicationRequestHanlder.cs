@@ -11,6 +11,6 @@ public class ApplicationRequestHanlder : IGlobalMessageHandler, IRecipient<Appli
 
     public void Receive(ApplicationShutdownNotification message)
     {
-        appHost.HostedApp!.Shutdown();
+        appHost.HostedApplication.Shutdown();
     }
 }

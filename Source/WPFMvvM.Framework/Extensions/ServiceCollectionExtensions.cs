@@ -1,6 +1,4 @@
-﻿using WPFMvvM.Framework.Handlers;
-
-namespace WPFMvvM.Framework.Extensions;
+﻿namespace WPFMvvM.Framework.Extensions;
 
 internal static class ServiceCollectionExtensions
 {
@@ -21,4 +19,11 @@ internal static class ServiceCollectionExtensions
        where TImplementation : class, TService
        => services.AddTransient<TImplementation>()
                   .AddTransient<TService>(s => s.GetRequiredService<TImplementation>());
+
+    public static IServiceCollection AddTransientWithFactory<TService, TImplementation>(this IServiceCollection services)
+       where TService : class
+       where TImplementation : class, TService
+       => services.AddTransient<TService, TImplementation>()
+                  .AddTransient<Func<TService>>(s => () => s.GetRequiredService<TService>())
+                  .AddTransient<Lazy<TService>>(sp => new Lazy<TService>(sp.GetRequiredService<Func<TService>>()));
 }

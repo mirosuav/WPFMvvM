@@ -6,8 +6,6 @@ public interface IAppScope : IDisposable
 
     IMessenger Messenger { get; }
 
-    CancellationToken CancellToken { get; }
-
     /// <summary>
     /// Create new application scope.
     /// This creates new AppScope with new ServiceScope

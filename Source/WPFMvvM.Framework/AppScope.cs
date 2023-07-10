@@ -1,6 +1,4 @@
-﻿using WPFMvvM.Framework.Handlers;
-
-namespace WPFMvvM.Framework;
+﻿namespace WPFMvvM.Framework;
 
 /// <summary>
 /// Application scope serves as central communication hub for all application sections
@@ -11,9 +9,6 @@ internal class AppScope : IDisposable, IAppScope
     private readonly IMessenger _messenger;
     private bool _disposedValue;
     private IDialogService? _windowService;
-    private readonly CancellationTokenSource cts = new();
-
-    public CancellationToken CancellToken => cts.Token;
 
     public AppScope(IServiceProvider services)
     {

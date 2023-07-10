@@ -10,9 +10,9 @@ public partial class AboutViewModel : BaseWindowModel
     [ObservableProperty]
     private AppInfo appInfo;
 
-    public AboutViewModel(IAppScope scope, IOptions<AppInfo> appInfo) : base(scope)
+    public AboutViewModel(IAppScope scope, AppInfo appInfo) : base(scope)
     {
-        this.appInfo = appInfo.Value;
+        this.appInfo = appInfo;
     }
 
     protected override ValueTask InitializeInternal(CancellationToken cancelltoken, params object[] parameters)

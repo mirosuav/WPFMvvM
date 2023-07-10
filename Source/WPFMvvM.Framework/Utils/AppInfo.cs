@@ -7,20 +7,25 @@ namespace WPFMvvM.Framework.Utils;
 
 public class AppInfo
 {
-    public string? Environment;
+    public string EnvironmentName;
+
+
+    public string AppAssemblyPath;
     public Guid? Id;
     public string? Name;
     public FileVersionInfo? VersionInfo;
     public string? AppDirectory;
     public string? AppDataDirectory;
-    public string? AppAssemblyPath;
 
-    public static AppInfo Create(Assembly assembly)
+    private AppInfo(string environmentName, string appAssemblyPath)
     {
-        AppInfo appInfo = new()
-        {
-            AppAssemblyPath = assembly.Location
-        };
+        EnvironmentName = environmentName;
+        AppAssemblyPath = appAssemblyPath;
+    }
+
+    public static AppInfo Create(Assembly assembly, string environmentName)
+    {
+        AppInfo appInfo = new(environmentName, assembly.Location);
         appInfo.AppDirectory = Path.GetDirectoryName(appInfo.AppAssemblyPath);
         appInfo.VersionInfo = FileVersionInfo.GetVersionInfo(appInfo.AppAssemblyPath);
         appInfo.Name = appInfo.VersionInfo.ProductName;
@@ -37,8 +42,8 @@ public class AppInfo
 
     public void CopyTo(AppInfo other)
     {
-        other.Environment = Environment;
-        other.Id = Id;  
+        other.EnvironmentName = EnvironmentName;
+        other.Id = Id;
         other.Name = Name;
         other.VersionInfo = VersionInfo;
         other.AppDirectory = AppDirectory;

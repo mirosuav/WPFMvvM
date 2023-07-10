@@ -1,19 +1,17 @@
 ﻿namespace WPFMvvM.Framework.Exceptions;
 
-public delegate void ExceptionHandler(LogLevel logLevel, string message, Exception? exception);
-
 internal class GlobalExceptionHandler : IDisposable, IGlobalExceptionHandler
 {
     private Application? application;
     private ILogger? logger;
-    private ExceptionHandler exceptionHandler;
     private bool disposedValue;
+    public ExceptionHandler Handle { get; }
 
     private GlobalExceptionHandler(Application application, ILogger logger, ExceptionHandler? globalExceptionHanlder)
     {
         this.application = application;
         this.logger = logger;
-        this.exceptionHandler = globalExceptionHanlder ?? LogAndShowCriticalException;
+        this.Handle = globalExceptionHanlder ?? LogAndShowCriticalException;
     }
 
     public static GlobalExceptionHandler Create(Application app, ILogger logger, ExceptionHandler? globalExceptionHanlder)
@@ -25,7 +23,6 @@ internal class GlobalExceptionHandler : IDisposable, IGlobalExceptionHandler
         return handler;
     }
 
-    public void Handle(LogLevel logLevel, string message, Exception? ex = null) => exceptionHandler.Invoke(logLevel, message, ex);
 
     void Configure()
     {
@@ -37,13 +34,13 @@ internal class GlobalExceptionHandler : IDisposable, IGlobalExceptionHandler
     }
 
     void HandleDomainExceptions(object sender, UnhandledExceptionEventArgs e)
-        => exceptionHandler(LogLevel.Critical, "Domain exception occured. Application will terminate. See logs for details.", e.ExceptionObject as Exception);
+        => Handle(LogLevel.Critical, "Domain exception occured. Application will terminate. See logs for details.", e.ExceptionObject as Exception);
 
     void HandleUiExceptions(object sender, DispatcherUnhandledExceptionEventArgs e)
-        => exceptionHandler(LogLevel.Critical, "Global exception occured.", e.Exception);
+        => Handle(LogLevel.Critical, "Global exception occured.", e.Exception);
 
     void HandleUnobservedTaskSchedulerException(object? sender, UnobservedTaskExceptionEventArgs e)
-    => exceptionHandler(LogLevel.Critical, "Application asynchronous exception occured", e.Exception);
+    => Handle(LogLevel.Critical, "Application asynchronous exception occured", e.Exception);
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2254:Template should be a static expression", Justification = "This is global exception handler.")]
     void LogAndShowCriticalException(LogLevel logLevel, string message, Exception? ex = null)
@@ -71,7 +68,6 @@ internal class GlobalExceptionHandler : IDisposable, IGlobalExceptionHandler
                 TaskScheduler.UnobservedTaskException -= HandleUnobservedTaskSchedulerException;
                 application = null;
                 logger = null;
-                exceptionHandler = LogAndShowCriticalException;
             }
             disposedValue = true;
         }

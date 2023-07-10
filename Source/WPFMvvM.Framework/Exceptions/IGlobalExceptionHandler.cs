@@ -1,8 +1,7 @@
-﻿namespace WPFMvvM.Framework.Exceptions
+﻿namespace WPFMvvM.Framework.Exceptions;
+
+public delegate void ExceptionHandler(LogLevel logLevel, string message, Exception? exception = null);
+public interface IGlobalExceptionHandler : IDisposable
 {
-    public interface IGlobalExceptionHandler
-    {
-        void Dispose();
-        void Handle(LogLevel logLevel, string message, Exception? ex = null);
-    }
+    ExceptionHandler Handle { get; }
 }
