@@ -1,6 +1,6 @@
 ﻿using WPFMvvM.Framework.Exceptions;
 
-namespace WPFMvvM.Framework.UI;
+namespace WPFMvvM.Framework.Services;
 
 /// <summary>
 /// Binds Window to WindowModel using events

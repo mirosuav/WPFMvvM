@@ -9,7 +9,7 @@ global using System.Windows;
 global using System.Windows.Threading;
 global using WPFMvvM.Framework.Extensions;
 global using WPFMvvM.Framework.Messages;
-global using WPFMvvM.Framework.UI;
+global using WPFMvvM.Framework.Services;
 global using WPFMvvM.Framework.Utils;
 global using WPFMvvM.Framework.View;
 global using WPFMvvM.Framework.ViewModel;

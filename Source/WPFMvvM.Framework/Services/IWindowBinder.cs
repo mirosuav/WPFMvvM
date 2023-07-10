@@ -1,4 +1,4 @@
-﻿namespace WPFMvvM.Framework.UI
+﻿namespace WPFMvvM.Framework.Services
 {
     public interface IWindowBinder
     {

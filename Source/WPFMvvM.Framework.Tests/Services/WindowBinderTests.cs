@@ -3,19 +3,13 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ReceivedExtensions;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using WPFMvvM.Framework.Exceptions;
 using WPFMvvM.Framework.Messages;
-using WPFMvvM.Framework.UI;
+using WPFMvvM.Framework.Services;
 using WPFMvvM.Framework.ViewModel;
 
-namespace WPFMvvM.Framework.Tests.UI;
+namespace WPFMvvM.Framework.Tests.Services;
 
 public class WindowBinderTests
 {

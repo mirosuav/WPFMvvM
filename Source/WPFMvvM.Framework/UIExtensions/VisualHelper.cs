@@ -1,6 +1,6 @@
 ﻿using System.Windows.Media;
 
-namespace WPFMvvM.Framework.UIExtensions;
+namespace WPFMvvM.Framework.ServicesExtensions;
 
 
 public static class VisualHelper
