@@ -19,6 +19,9 @@ internal static class CultureExtensions
         CultureInfo.CurrentCulture = appCulture.AppCulture;
         CultureInfo.DefaultThreadCurrentCulture = appCulture.AppCulture;
 
+        CultureInfo.CurrentCulture.ClearCachedData();
+        CultureInfo.CurrentUICulture.ClearCachedData();
+
         //Passes the CurrentCulture to all UI elements
         //so for instance DateTime format string works properly
         FrameworkElement.LanguageProperty

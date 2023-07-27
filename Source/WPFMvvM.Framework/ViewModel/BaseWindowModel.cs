@@ -18,6 +18,7 @@ public abstract partial class BaseWindowModel : BaseViewModel
 
     public event EventHandler? OnClosed;
 
+
     public BaseWindowModel(IAppScope scope) : base(scope)
     {
     }
@@ -26,14 +27,14 @@ public abstract partial class BaseWindowModel : BaseViewModel
     /// Handle operations on window activated
     /// </summary>
     [RelayCommand]
-    public async Task Activate(CancellationToken token)
+    public async Task Activate(CancellationToken token = default)
     {
         if (IsDisposed) return;
         await Activating(token);
         OnActivated?.Invoke(this, EventArgs.Empty);
     }
 
-    protected virtual Task Activating(CancellationToken token)
+    protected virtual Task Activating(CancellationToken token = default)
     {
         if (IsDisposed) return Task.CompletedTask;
         return Task.CompletedTask;
@@ -43,7 +44,7 @@ public abstract partial class BaseWindowModel : BaseViewModel
     /// Force closing window
     /// </summary>
     [RelayCommand(AllowConcurrentExecutions = false)]
-    public async Task Close(WindowClosingRequest? request, CancellationToken token)
+    public async Task Close(WindowClosingRequest? request = default, CancellationToken token = default)
     {
         request ??= new();
         if (IsDisposed || IsClosed)
@@ -57,6 +58,14 @@ public abstract partial class BaseWindowModel : BaseViewModel
         if (!canClose)
             return;
 
+        await CloseInternal(request, token);
+    }
+
+    protected async Task CloseInternal(WindowClosingRequest? request, CancellationToken token = default)
+    {
+        request ??= new();
+        await BeforeClose(request, token);
+
         if (!request.UITriggered)
             await Scope.Messenger.Send(new SelfWindowCloseRequest(), WindowRequestToken);
 
@@ -65,18 +74,27 @@ public abstract partial class BaseWindowModel : BaseViewModel
         OnClosed?.Invoke(this, EventArgs.Empty);
     }
 
-    protected internal virtual ValueTask<bool> CanClose(WindowClosingRequest? request, CancellationToken token)
+    protected internal virtual ValueTask<bool> CanClose(WindowClosingRequest? request, CancellationToken token = default)
     {
         if (IsDisposed || IsClosed)
             return ValueTask.FromResult(false);
-        
+
         if (request?.Force ?? false)
             return ValueTask.FromResult(true);
 
         return CheckUnsavedChanges(token);
     }
 
-    protected virtual ValueTask AfterClose(WindowClosingRequest? request, CancellationToken token)
+    /// <summary>
+    /// Occurs right before closing current window. Changes were already accepted
+    /// </summary>
+    protected virtual ValueTask BeforeClose(WindowClosingRequest? request, CancellationToken token = default)
+    {
+        if (IsDisposed) return ValueTask.CompletedTask;
+        return ValueTask.CompletedTask;
+    }
+
+    protected virtual ValueTask AfterClose(WindowClosingRequest? request, CancellationToken token = default)
     {
         if (IsDisposed) return ValueTask.CompletedTask;
         return ValueTask.CompletedTask;

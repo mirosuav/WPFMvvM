@@ -17,15 +17,15 @@ public class DialogService : IDialogService
         _windowBinder = windowBinder;
     }
 
-    public ValueTask<bool> ShowDialog<TWindowModel>(TWindowModel windowModel, CancellationToken token) where TWindowModel : BaseWindowModel
+    public bool ShowDialog<TWindowModel>(TWindowModel windowModel) where TWindowModel : BaseWindowModel
     {
-        return ValueTask.FromResult(ResolveWindowFor(windowModel).ShowDialog() ?? false);
+        return ResolveWindowFor(windowModel).ShowDialog() ?? false;
     }
 
-    public ValueTask<bool> Show<TWindowModel>(TWindowModel viewModel, CancellationToken token) where TWindowModel : BaseWindowModel
+    public bool Show<TWindowModel>(TWindowModel viewModel) where TWindowModel : BaseWindowModel
     {
         ResolveWindowFor(viewModel).Show();
-        return ValueTask.FromResult(true);
+        return true;
     }
 
 
@@ -51,6 +51,9 @@ public class DialogService : IDialogService
     {
         var vmAttr = windowModel.GetType().GetCustomAttribute<UseWindowAttribute>();
         Guard.IsNotNull(vmAttr, $"No {nameof(UseWindowAttribute)} defined on {windowModel.GetType().FullName}");
+
+        if (!vmAttr.ViewType.IsAssignableTo(typeof(Window)))
+            throw new Exception($"Type {vmAttr.ViewType.Name} is not a Window type!");
 
         var view = Activator.CreateInstance(vmAttr.ViewType) as ContentControl;
         Guard.IsNotNull(view, $"Could not create an instance of UI part: {vmAttr.ViewType.FullName}");

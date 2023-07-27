@@ -2,7 +2,7 @@
 
 public abstract partial class BaseViewModel : ObservableValidator, IDisposable
 {
-    protected readonly IAppScope Scope;
+    protected virtual IAppScope Scope { get; }
     protected bool IsDisposed;
 
     protected BaseViewModel(IAppScope scope)
@@ -19,13 +19,13 @@ public abstract partial class BaseViewModel : ObservableValidator, IDisposable
     protected virtual ValueTask InitializeInternal(CancellationToken cancelltoken, params object[] parameters)
     {
         cancelltoken.ThrowIfCancellationRequested();
-        return ValueTask.CompletedTask; 
+        return ValueTask.CompletedTask;
     }
 
     /// <summary>
     /// Validate current screen before leaving
     /// </summary>
-    protected virtual ValueTask<bool> CheckUnsavedChanges(CancellationToken cancelltoken)
+    public virtual ValueTask<bool> CheckUnsavedChanges(CancellationToken cancelltoken)
     {
         return ValueTask.FromResult(true);
     }

@@ -1,6 +1,6 @@
 ﻿namespace WPFMvvM.Framework.Extensions;
 
-internal static class ServiceCollectionExtensions
+public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddSingletonWithSelf<TService, TImplementation>(this IServiceCollection services)
     where TService : class
@@ -24,6 +24,8 @@ internal static class ServiceCollectionExtensions
        where TService : class
        where TImplementation : class, TService
        => services.AddTransient<TService, TImplementation>()
-                  .AddTransient<Func<TService>>(s => () => s.GetRequiredService<TService>())
-                  .AddTransient<Lazy<TService>>(sp => new Lazy<TService>(sp.GetRequiredService<Func<TService>>()));
+                  .AddSingleton<Func<TService>>(s => () => s.GetRequiredService<TService>())
+                  .AddSingleton<Lazy<TService>>(sp => new Lazy<TService>(sp.GetRequiredService<Func<TService>>()));
+
+
 }

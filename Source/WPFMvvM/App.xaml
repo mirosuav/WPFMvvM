@@ -4,14 +4,4 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="clr-namespace:WPFMvvM"
     xmlns:v="clr-namespace:WPFMvvM.View"
-    xmlns:vm="clr-namespace:WPFMvvM.ViewModel">
-    <Application.Resources>
-        <ResourceDictionary>
-
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="pack://application:,,,/Styles/WindowStyle.xaml" />
-            </ResourceDictionary.MergedDictionaries>
-
-        </ResourceDictionary>
-    </Application.Resources>
-</Application>
+    xmlns:vm="clr-namespace:WPFMvvM.ViewModel" />

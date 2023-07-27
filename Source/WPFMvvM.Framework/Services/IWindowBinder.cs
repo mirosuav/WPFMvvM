@@ -1,7 +1,6 @@
-﻿namespace WPFMvvM.Framework.Services
+﻿namespace WPFMvvM.Framework.Services;
+
+public interface IWindowBinder
 {
-    public interface IWindowBinder
-    {
-        void BindViewModel(Window window, BaseWindowModel windowModel);
-    }
+    void BindViewModel(Window window, BaseWindowModel windowModel);
 }

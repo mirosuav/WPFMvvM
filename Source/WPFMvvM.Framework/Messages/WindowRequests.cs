@@ -13,6 +13,8 @@ internal class SelfWindowCloseRequest : AsyncRequestMessage<bool> { }
 /// </summary>
 public class WindowClosingRequest : RequestMessage<bool>
 {
+    public static WindowClosingRequest ForceClose = new WindowClosingRequest { Force = true };
+
     /// <summary>
     /// Force closing window no matter of CanClose result
     /// </summary>

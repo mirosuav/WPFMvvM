@@ -1,35 +1,40 @@
-﻿namespace WPFMvvM.Framework;
+﻿using WPFMvvM.Framework.Exceptions;
+
+namespace WPFMvvM.Framework;
 
 /// <summary>
 /// Application scope serves as central communication hub for all application sections
 /// </summary>
-internal class AppScope : IDisposable, IAppScope
+public class AppScope : IDisposable, IAppScope
 {
-    private readonly IServiceProvider _services;
-    private readonly IMessenger _messenger;
-    private bool _disposedValue;
-    private IDialogService? _windowService;
+    protected bool _disposedValue;
+
+    public IGlobalExceptionHandler ExceptionHandler { get; }
+    public IMessenger Messenger { get; }
+    public IDialogService DialogService { get; }
+    public IUIServices UI { get; }
+    public IServiceProvider Services { get; }
 
     public AppScope(IServiceProvider services)
     {
         Guard.IsNotNull(services);
-        _services = services;
-        _messenger = _services.GetRequiredService<IMessenger>();
+        Services = services;
+        ExceptionHandler = Services.GetRequiredService<IGlobalExceptionHandler>();
+        Messenger = Services.GetRequiredService<IMessenger>();
+        DialogService = Services.GetRequiredService<IDialogService>();
+        UI = Services.GetRequiredService<IUIServices>();
     }
 
-    public IMessenger Messenger => _messenger;
-
-    public IDialogService DialogService => _windowService ??= _services.GetRequiredService<IDialogService>();
-
-    public IAppScope CreateNewScope()
+    public (IAppScope ApplicationScope, IDisposable CompositionScope) CreateNewScope()
     {
-        var newScope = _services.CreateScope();
-        return newScope.ServiceProvider.GetRequiredService<IAppScope>();
+        var compScope = Services.CreateScope();
+        var appScope = compScope.ServiceProvider.GetRequiredService<IAppScope>();
+        return (appScope, compScope);
     }
 
     public TViewModel ResolveViewModel<TViewModel>() where TViewModel : BaseViewModel
     {
-        return _services.GetRequiredService<TViewModel>();
+        return Services.GetRequiredService<TViewModel>();
     }
 
     protected virtual void Dispose(bool disposing)

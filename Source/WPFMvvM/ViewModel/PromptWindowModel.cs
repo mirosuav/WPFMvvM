@@ -17,7 +17,7 @@ public partial class PromptWindowModel : BaseWindowModel
     {
         await Task.Delay(100);
         throw new Exception("Unobserved task exception from async void!");
-       
+
     }
 
 
@@ -27,7 +27,7 @@ public partial class PromptWindowModel : BaseWindowModel
         return base.InitializeInternal(cancelltoken, parameters);
     }
 
-    protected override ValueTask<bool> CheckUnsavedChanges(CancellationToken cancelltoken)
+    public override ValueTask<bool> CheckUnsavedChanges(CancellationToken cancelltoken)
     {
         cancelltoken.ThrowIfCancellationRequested();
         return ValueTask.FromResult(MessageBox.Show("Are you sure to close ?", "Confirm closing", MessageBoxButton.YesNo) == MessageBoxResult.Yes);

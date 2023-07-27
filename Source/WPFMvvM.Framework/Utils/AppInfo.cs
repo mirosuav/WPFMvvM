@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 
 namespace WPFMvvM.Framework.Utils;
 
-public class AppInfo
+public partial class AppInfo : ObservableObject
 {
     public string EnvironmentName;
 
@@ -23,7 +23,7 @@ public class AppInfo
         AppAssemblyPath = appAssemblyPath;
     }
 
-    public static AppInfo Create(Assembly assembly, string environmentName)
+    public static AppInfo Create(Assembly assembly, string environmentName = "")
     {
         AppInfo appInfo = new(environmentName, assembly.Location);
         appInfo.AppDirectory = Path.GetDirectoryName(appInfo.AppAssemblyPath);

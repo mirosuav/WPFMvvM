@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.Globalization;
 using WPFMvvM.Framework;
 using WPFMvvM.ViewModel;
 
@@ -10,15 +11,24 @@ public partial class App : Application
 {
     private readonly IWPFApplicationHost<App> host;
 
-    public App(IWPFApplicationHost<App> host)
-    {
-        this.host = host;
-    }
-
     public App()
     {
-        throw new NotImplementedException();
+        host = WPFApplicationHost<App>
+                    .CreateWithMainViewModel<MainWindowModel>(this)
+                    .ConfigureGlobalExceptionHanlder(GlobalExcepionHandler)
+                    .ConfigureServices(ConfigureServices)
+                    .ConfigureLogging(ConfigureLogging)
+                    .ConfigureAppConfiguration(ConfigureAppConfiguration)
+                    .UseAppCulture(CultureInfo.GetCultureInfo("en-US"))
+                    .UseStartup(OnStartup);
     }
+
+    protected override async void OnStartup(StartupEventArgs e)
+    {
+        base.OnStartup(e);
+        await host.Run(e.Args);
+    }
+
 
     public void GlobalExcepionHandler(LogLevel logLevel, string message, Exception? exception = null)
     {
