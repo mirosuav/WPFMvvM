@@ -1,16 +1,15 @@
-﻿using WPFMvvM.Framework;
-using WPFMvvM.Framework.Utils;
-using WPFMvvM.Framework.ViewModel;
+﻿using WPFMvvM.Framework.Utils;
+using WPFMvvM.Services;
 
 namespace WPFMvvM.ViewModel;
 
 [UseWindow(typeof(AboutView))]
-public partial class AboutViewModel : BaseWindowModel
+public partial class AboutViewModel : WPFMvvMBaseWindowModel
 {
     [ObservableProperty]
     private AppInfo appInfo;
 
-    public AboutViewModel(IAppScope scope, AppInfo appInfo) : base(scope)
+    public AboutViewModel(WPFMvvMAppScope scope, AppInfo appInfo) : base(scope)
     {
         this.appInfo = appInfo;
     }

@@ -1,14 +1,13 @@
 ﻿using CommunityToolkit.Mvvm.Input;
-using WPFMvvM.Framework;
 using WPFMvvM.Framework.Utils;
-using WPFMvvM.Framework.ViewModel;
+using WPFMvvM.Services;
 
 namespace WPFMvvM.ViewModel;
 
 [UseWindow(typeof(PromptWindow))]
-public partial class PromptWindowModel : BaseWindowModel
+public partial class PromptWindowModel : WPFMvvMBaseWindowModel
 {
-    public PromptWindowModel(IAppScope scope) : base(scope)
+    public PromptWindowModel(WPFMvvMAppScope scope) : base(scope)
     {
     }
 

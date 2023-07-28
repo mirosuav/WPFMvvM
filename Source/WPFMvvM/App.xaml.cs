@@ -1,8 +1,11 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Globalization;
+using WPFMvvM.Domain;
 using WPFMvvM.Framework;
+using WPFMvvM.Services;
 using WPFMvvM.ViewModel;
 
 namespace WPFMvvM;
@@ -59,11 +62,19 @@ public partial class App : Application
     public void ConfigureServices(HostBuilderContext context, IServiceCollection services)
     {
         // host.Logger!.LogInformation("ConfigureServices passed");
+        services.AddScoped<IAppScope, WPFMvvMAppScope>();
         services.Configure<GeneralSettings>(context.Configuration.GetSection(nameof(GeneralSettings)));
         services.AddSingleton<MainWindowModel>();
         services.AddTransient<DashboardViewModel>();
         services.AddTransient<AboutViewModel>();
         services.AddTransient<PromptWindowModel>();
+        services.AddDbContext<AppDbContext>(x =>
+        {
+            x.UseInMemoryDatabase("CarDealer", db =>
+            {
+                db.EnableNullChecks();
+            });
+        });
     }
 
 

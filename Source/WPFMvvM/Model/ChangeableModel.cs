@@ -1,15 +1,7 @@
-﻿using System.ComponentModel;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace WPFMvvM.Model;
-
-public class PropertyNoStateChangedEventArgs : PropertyChangedEventArgs
-{
-    public PropertyNoStateChangedEventArgs(string? propertyName) : base(propertyName)
-    {
-    }
-}
 
 
 public abstract partial class ChangeableModel : BaseModel

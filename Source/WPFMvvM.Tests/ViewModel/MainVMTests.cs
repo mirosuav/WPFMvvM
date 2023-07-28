@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
-using WPFMvvM.Framework;
-using WPFMvvM.Framework.Utils;
+using WPFMvvM.Services;
 using WPFMvvM.ViewModel;
 
 namespace WPFMvvM.Tests.ViewModel;
@@ -14,7 +13,7 @@ public class MainVMTests
         var opts = new GeneralSettings { Title = "Hello Tests!" };
 
         //Act
-        var target = new MainWindowModel(Substitute.For<IAppScope>(), Options.Create(opts));
+        var target = new MainWindowModel(Substitute.For<WPFMvvMAppScope>(), Options.Create(opts));
         using var monitoredtarget = target.Monitor();
         await target.Initialize(CancellationToken.None);
 

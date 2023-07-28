@@ -10,7 +10,7 @@ public interface IWPFApplicationHost<TApp> : IWPFApplicationHost where TApp : Ap
     ApplicationCulture? AppCulture { get; }
     AppInfo? AppInfo { get; }
     ILogger<TApp>? Logger { get; }
-    IAppScope? MainAppScope { get; }
+    ApplicationScopeHost? ProgramScope { get; }
     IServiceProvider Services { get; }
     Task Run(string[]? args = null, CancellationToken token = default);
 }

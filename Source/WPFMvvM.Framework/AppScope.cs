@@ -5,9 +5,8 @@ namespace WPFMvvM.Framework;
 /// <summary>
 /// Application scope serves as central communication hub for all application sections
 /// </summary>
-public class AppScope : IDisposable, IAppScope
+public class AppScope : IAppScope
 {
-    protected bool _disposedValue;
 
     public IGlobalExceptionHandler ExceptionHandler { get; }
     public IMessenger Messenger { get; }
@@ -25,11 +24,11 @@ public class AppScope : IDisposable, IAppScope
         UI = Services.GetRequiredService<IUIServices>();
     }
 
-    public (IAppScope ApplicationScope, IDisposable CompositionScope) CreateNewScope()
+    public ApplicationScopeHost CreateNewScope()
     {
         var compScope = Services.CreateScope();
         var appScope = compScope.ServiceProvider.GetRequiredService<IAppScope>();
-        return (appScope, compScope);
+        return new ApplicationScopeHost(compScope, appScope);
     }
 
     public TViewModel ResolveViewModel<TViewModel>() where TViewModel : BaseViewModel
@@ -37,19 +36,16 @@ public class AppScope : IDisposable, IAppScope
         return Services.GetRequiredService<TViewModel>();
     }
 
-    protected virtual void Dispose(bool disposing)
+    public BaseViewModel? ResolveViewModel(Type viewModelType)
     {
-        if (!_disposedValue)
-        {
-            if (disposing)
-            {
-            }
-            _disposedValue = true;
-        }
+        return Services.GetRequiredService(viewModelType) as BaseViewModel;
     }
-    public void Dispose()
+
+    public ApplicationScopeHost ResolveViewModelWithNewScope<TViewModel>(out TViewModel viewModel) where TViewModel : BaseViewModel
     {
-        Dispose(disposing: true);
-        GC.SuppressFinalize(this);
+        var vmScope = CreateNewScope();
+        viewModel = vmScope.ApplicationScope.ResolveViewModel<TViewModel>();
+        return vmScope;
     }
+
 }

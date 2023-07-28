@@ -27,11 +27,11 @@
         </Grid.RowDefinitions>
 
         <Menu Grid.Row="0">
-            <MenuItem Header="_File">
+            <MenuItem Header="_Application">
                 <MenuItem Command="{Binding DashboardCommand}" Header="_Dashboard" />
+                <MenuItem Command="{Binding CarListCommand}" Header="_Car list" />
+                <MenuItem Command="{Binding NewCarCommand}" Header="_New car" />
                 <MenuItem Command="{Binding AboutCommand}" Header="_About" />
-                <MenuItem Command="{Binding AboutDialogCommand}" Header="A_bout dialog" />
-                <MenuItem Command="{Binding AskUserCommand}" Header="A_sk user" />
                 <Separator />
                 <MenuItem Command="{Binding ExitCommand}" Header="E_xit" />
             </MenuItem>

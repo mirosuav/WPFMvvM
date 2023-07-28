@@ -1,8 +1,7 @@
 ﻿using WPFMvvM.Framework.Exceptions;
 
 namespace WPFMvvM.Framework;
-
-public interface IAppScope : IDisposable
+public interface IAppScope
 {
     IServiceProvider Services { get; }
     IGlobalExceptionHandler ExceptionHandler { get; }
@@ -14,7 +13,9 @@ public interface IAppScope : IDisposable
     /// Create new application scope.
     /// This creates new AppScope with new ServiceScope
     /// </summary>
-    (IAppScope ApplicationScope, IDisposable CompositionScope) CreateNewScope();
+    ApplicationScopeHost CreateNewScope();
     TViewModel ResolveViewModel<TViewModel>() where TViewModel : BaseViewModel;
+    BaseViewModel? ResolveViewModel(Type viewModelType);
+    ApplicationScopeHost ResolveViewModelWithNewScope<TViewModel>(out TViewModel viewModel) where TViewModel : BaseViewModel;
 
 }

@@ -20,7 +20,6 @@ public sealed partial class WPFApplicationHost<TApp> : IWPFApplicationHost<TApp>
     private AppStartupDelegate? _onAppStartup;
     private ExceptionHandler? _appExceptionHandler;
     private IGlobalExceptionHandler? _globalExceptionHandler;
-    private IServiceScope? _mainServiceScope;
 
     private List<Action<HostBuilderContext, IServiceCollection>> configureServicesDelegates = new();
     private List<Action<HostBuilderContext, ILoggingBuilder>> configureLoggingDelegates = new();
@@ -29,9 +28,9 @@ public sealed partial class WPFApplicationHost<TApp> : IWPFApplicationHost<TApp>
 
     public ApplicationCulture? AppCulture { get; private set; }
     public AppInfo? AppInfo { get; private set; }
-    public IServiceProvider Services => _mainServiceScope?.ServiceProvider ?? throw new InvalidOperationException("Host is not running");
+    public IServiceProvider Services => ProgramScope?.ApplicationScope?.Services ?? throw new InvalidOperationException("Host is not running");
     public ILogger<TApp>? Logger { get; private set; }
-    public IAppScope? MainAppScope { get; private set; }
+    public ApplicationScopeHost? ProgramScope { get; private set; }
     public Application HostedApplication => _hostedApp;
 
     public static WPFApplicationHost<TApp> CreateWithMainViewModel<TMainViewModel>(TApp hostedApp) where TMainViewModel : BaseWindowModel
@@ -124,16 +123,13 @@ public sealed partial class WPFApplicationHost<TApp> : IWPFApplicationHost<TApp>
 
     void ConfigureCommonAspects(IHost host)
     {
-        _mainServiceScope = host.Services.CreateScope();
+        ProgramScope = host.Services.CreateScope().ToApplicationScopeHost();
 
         Logger = Services.GetRequiredService<ILogger<TApp>>();
 
         _globalExceptionHandler = Exceptions.GlobalExceptionHandler.Create(_hostedApp, Logger, _appExceptionHandler);
 
         RegisterGlobalMessageHandlers(host);
-
-        MainAppScope = Services.GetRequiredService<IAppScope>();
-
     }
 
 
@@ -212,7 +208,7 @@ public sealed partial class WPFApplicationHost<TApp> : IWPFApplicationHost<TApp>
         try
         {
             Guard.IsNotNull(_genericHost, "Generic host");
-            Guard.IsNotNull(MainAppScope, "MainAppScope");
+            Guard.IsNotNull(ProgramScope, "MainAppScope");
             Guard.IsNotNull(Logger, "Logger");
             Guard.IsNotNull(AppInfo, "AppInfo");
 
@@ -226,7 +222,7 @@ public sealed partial class WPFApplicationHost<TApp> : IWPFApplicationHost<TApp>
             startupCancellation.Token.ThrowIfCancellationRequested();
 
             if (_onAppStartup is not null)
-                await _onAppStartup.Invoke(MainAppScope, startupCancellation, args);
+                await _onAppStartup.Invoke(ProgramScope.ApplicationScope, startupCancellation, args);
 
             startupCancellation.Token.ThrowIfCancellationRequested();
 
@@ -283,7 +279,7 @@ public sealed partial class WPFApplicationHost<TApp> : IWPFApplicationHost<TApp>
     {
         using (_genericHost)
         {
-            MainAppScope?.Dispose();
+            ProgramScope?.Dispose();
             //ensure logs are flushed
             if (_genericHost is not null)
                 await _genericHost.StopAsync(TimeSpan.FromSeconds(2));
@@ -296,7 +292,7 @@ public sealed partial class WPFApplicationHost<TApp> : IWPFApplicationHost<TApp>
         {
             _hostedApp.Exit -= HostedApp_Exit;
         }
-        MainAppScope?.Dispose();
+        ProgramScope?.Dispose();
         _globalExceptionHandler?.Dispose();
         _genericHost?.Dispose();
     }

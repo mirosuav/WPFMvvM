@@ -1,31 +1,26 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using WPFMvvM.Framework;
-using WPFMvvM.Framework.Extensions;
 using WPFMvvM.Framework.Messages;
 using WPFMvvM.Framework.Utils;
 using WPFMvvM.Framework.ViewModel;
-using WPFMvvM.Model;
+using WPFMvvM.Services;
 
 namespace WPFMvvM.ViewModel;
 
 [UseWindow(typeof(MainWindow))]
-public partial class MainWindowModel : BaseWindowModel
+public partial class MainWindowModel : WPFMvvMBaseWindowModel
 {
+    private IDisposable? contentVMCompositionScope;
     private readonly IOptions<GeneralSettings> generalSettings;
 
     [ObservableProperty]
     BaseViewModel? contenViewModel;
 
-    [ObservableProperty]
-    PersonModel model;
 
 
-
-    public MainWindowModel(IAppScope scope, IOptions<GeneralSettings> generalSettings)
+    public MainWindowModel(WPFMvvMAppScope scope, IOptions<GeneralSettings> generalSettings)
         : base(scope)
     {
-        Model = new PersonModel { FirstName = "Nick", IsExpanded = false };
         this.generalSettings = generalSettings;
     }
 
@@ -39,36 +34,47 @@ public partial class MainWindowModel : BaseWindowModel
     [RelayCommand]
     async Task Dashboard(CancellationToken token)
     {
-        ContenViewModel = Scope.ResolveViewModel<DashboardViewModel>();
-        await ContenViewModel.Initialize(token);
-    }
-
-    [RelayCommand(FlowExceptionsToTaskScheduler = true)]
-    async Task OnAbout(CancellationToken token)
-    {
-
-        Model.FirstName = "Mirek";
-        Model.IsExpanded = true;
-
-        ContenViewModel = Scope.ResolveViewModel<AboutViewModel>();
+        contentVMCompositionScope?.Dispose();
+        contentVMCompositionScope = Scope.ResolveViewModelWithNewScope<DashboardViewModel>(out var newCVM);
+        ContenViewModel = newCVM;
         await ContenViewModel.Initialize(token);
     }
 
     [RelayCommand]
-    async Task AboutDialog(CancellationToken token)
+    async Task About(CancellationToken token)
     {
-        var vm = Scope.ResolveViewModel<AboutViewModel>();
+        using var hs = Scope.ResolveViewModelWithNewScope<AboutViewModel>(out var vm);
         await vm.Initialize(token);
         Scope.DialogService.ShowDialog(vm);
     }
 
+
     [RelayCommand]
-    async Task AskUser(CancellationToken token)
+    async Task CarList(CancellationToken token)
     {
-        var scope = Scope.ResolveViewModelWithNewScope<PromptWindowModel>(out var vm);
-        await vm.Initialize(token);
-        Scope.DialogService.ShowDialog(vm);
+        contentVMCompositionScope?.Dispose();
+        contentVMCompositionScope = Scope.ResolveViewModelWithNewScope<CarListViewModel>(out var newCVM);
+        ContenViewModel = newCVM;
+        await ContenViewModel.Initialize(token);
     }
+
+    [RelayCommand]
+    async Task NewCar(CancellationToken token)
+    {
+        contentVMCompositionScope?.Dispose();
+        contentVMCompositionScope = Scope.ResolveViewModelWithNewScope<CarNewViewModel>(out var newCVM);
+        ContenViewModel = newCVM;
+        await ContenViewModel.Initialize(token);
+    }
+
+
+    //[RelayCommand]
+    //async Task AskUser(CancellationToken token)
+    //{
+    //    var scope = Scope.ResolveViewModelWithNewScope<PromptWindowModel>(out var vm);
+    //    await vm.Initialize(token);
+    //    Scope.DialogService.ShowDialog(vm);
+    //}
 
     [RelayCommand()]
     void Exit()

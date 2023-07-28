@@ -1,12 +1,11 @@
-﻿using WPFMvvM.Framework;
-using WPFMvvM.Framework.ViewModel;
+﻿using WPFMvvM.Services;
 
 namespace WPFMvvM.ViewModel;
 
 //[BindView(typeof(DashboardView))]
-public partial class DashboardViewModel : BaseViewModel
+public partial class DashboardViewModel : WPFMvvMBaseViewModel
 {
-    public DashboardViewModel(IAppScope scope) : base(scope)
+    public DashboardViewModel(WPFMvvMAppScope scope) : base(scope)
     {
     }
 

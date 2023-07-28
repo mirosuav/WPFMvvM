@@ -8,5 +8,10 @@ public static class ServiceProviderExtensions
         var obj = newScope.ServiceProvider.GetRequiredService<T>();
         return (newScope, obj);
     }
+
+    public static ApplicationScopeHost ToApplicationScopeHost(this IServiceScope serviceScope)
+    {
+        return new(serviceScope, serviceScope.ServiceProvider.GetRequiredService<IAppScope>());
+    }
 }
 
