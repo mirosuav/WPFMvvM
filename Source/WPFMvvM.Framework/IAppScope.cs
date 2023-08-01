@@ -13,9 +13,9 @@ public interface IAppScope
     /// Create new application scope.
     /// This creates new AppScope with new ServiceScope
     /// </summary>
-    ApplicationScopeHost CreateNewScope();
+    ApplicationHostScope CreateNewScope();
     TViewModel ResolveViewModel<TViewModel>() where TViewModel : BaseViewModel;
     BaseViewModel? ResolveViewModel(Type viewModelType);
-    ApplicationScopeHost ResolveViewModelWithNewScope<TViewModel>(out TViewModel viewModel) where TViewModel : BaseViewModel;
+    ApplicationHostScope ResolveViewModelWithNewScope<TViewModel>(out TViewModel viewModel) where TViewModel : BaseViewModel;
 
 }

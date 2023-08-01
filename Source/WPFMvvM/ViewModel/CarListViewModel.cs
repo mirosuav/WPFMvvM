@@ -3,7 +3,7 @@ using WPFMvvM.Services;
 
 namespace WPFMvvM.ViewModel;
 
-internal partial class CarListViewModel : WPFMvvMBaseViewModel
+public partial class CarListViewModel : WPFMvvMBaseViewModel
 {
     [ObservableProperty]
     CarCollectionModel? cars;

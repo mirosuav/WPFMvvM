@@ -2,11 +2,11 @@
 /// <summary>
 /// Disposable wrapper around disposable IServiceScope <DisposableHost> and contained ApplicationScope
 /// </summary>
-public record ApplicationScopeHost(IDisposable DisposableHost, IAppScope ApplicationScope) : IDisposable
+public record ApplicationHostScope(IDisposable ServiceScope, IAppScope ApplicationScope) : IDisposable
 {
     public void Dispose()
     {
-        DisposableHost.Dispose();
+        ServiceScope.Dispose();
         GC.SuppressFinalize(this);
     }
 }

@@ -1,14 +1,20 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using WPFMvvM.Framework.Exceptions;
 using WPFMvvM.Framework.Messages;
 using WPFMvvM.Framework.Utils;
 using WPFMvvM.Framework.ViewModel;
+using WPFMvvM.Messages;
 using WPFMvvM.Services;
 
 namespace WPFMvvM.ViewModel;
 
 [UseWindow(typeof(MainWindow))]
-public partial class MainWindowModel : WPFMvvMBaseWindowModel
+public partial class MainWindowModel : WPFMvvMBaseWindowModel,
+    IRecipient<CarListNavigation>,
+    IRecipient<NewCarNavigation>,
+    IRecipient<AboutNavigation>,
+    IRecipient<CarEditNavigation>
 {
     private IDisposable? contentVMCompositionScope;
     private readonly IOptions<GeneralSettings> generalSettings;
@@ -28,43 +34,87 @@ public partial class MainWindowModel : WPFMvvMBaseWindowModel
     {
         Title = generalSettings.Value.Title;
         await base.InitializeInternal(cancelltoken);
-        await DashboardCommand.ExecuteAsync(cancelltoken);
+        await Dashboard(cancelltoken);
     }
 
     [RelayCommand]
     async Task Dashboard(CancellationToken token)
     {
-        contentVMCompositionScope?.Dispose();
-        contentVMCompositionScope = Scope.ResolveViewModelWithNewScope<DashboardViewModel>(out var newCVM);
-        ContenViewModel = newCVM;
-        await ContenViewModel.Initialize(token);
+        try
+        {
+            contentVMCompositionScope?.Dispose();
+            contentVMCompositionScope = Scope.ResolveViewModelWithNewScope<DashboardViewModel>(out var newCVM);
+            ContenViewModel = newCVM;
+            await ContenViewModel.Initialize(token);
+        }
+        catch (Exception ex)
+        {
+            Scope.ExceptionHandler.HandleError("Error initializing dashboard", ex);
+        }
     }
 
     [RelayCommand]
     async Task About(CancellationToken token)
     {
-        using var hs = Scope.ResolveViewModelWithNewScope<AboutViewModel>(out var vm);
-        await vm.Initialize(token);
-        Scope.DialogService.ShowDialog(vm);
+        try
+        {
+            using var hs = Scope.ResolveViewModelWithNewScope<AboutViewModel>(out var vm);
+            await vm.Initialize(token);
+            Scope.DialogService.ShowDialog(vm);
+        }
+        catch (Exception ex)
+        {
+            Scope.ExceptionHandler.HandleError("Error initializing about", ex);
+        }
     }
 
 
     [RelayCommand]
     async Task CarList(CancellationToken token)
     {
-        contentVMCompositionScope?.Dispose();
-        contentVMCompositionScope = Scope.ResolveViewModelWithNewScope<CarListViewModel>(out var newCVM);
-        ContenViewModel = newCVM;
-        await ContenViewModel.Initialize(token);
+        try
+        {
+            contentVMCompositionScope?.Dispose();
+            contentVMCompositionScope = Scope.ResolveViewModelWithNewScope<CarListViewModel>(out var newCVM);
+            ContenViewModel = newCVM;
+            await ContenViewModel.Initialize(token);
+        }
+        catch (Exception ex)
+        {
+            Scope.ExceptionHandler.HandleError("Error initializing car list editor", ex);
+        }
     }
 
     [RelayCommand]
     async Task NewCar(CancellationToken token)
     {
-        contentVMCompositionScope?.Dispose();
-        contentVMCompositionScope = Scope.ResolveViewModelWithNewScope<CarNewViewModel>(out var newCVM);
-        ContenViewModel = newCVM;
-        await ContenViewModel.Initialize(token);
+        try
+        {
+            contentVMCompositionScope?.Dispose();
+            contentVMCompositionScope = Scope.ResolveViewModelWithNewScope<CarNewViewModel>(out var newCVM);
+            ContenViewModel = newCVM;
+            await ContenViewModel.Initialize(token);
+        }
+        catch (Exception ex)
+        {
+            Scope.ExceptionHandler.HandleError("Error initializing car editor", ex);
+        }
+    }
+
+    [RelayCommand]
+    async Task EditCar(int carID, CancellationToken token)
+    {
+        try
+        {
+            contentVMCompositionScope?.Dispose();
+            contentVMCompositionScope = Scope.ResolveViewModelWithNewScope<CarEditViewModel>(out var newCVM);
+            ContenViewModel = newCVM;
+            await ContenViewModel.Initialize(token, carID);
+        }
+        catch (Exception ex)
+        {
+            Scope.ExceptionHandler.HandleError("Error initializing car editor", ex);
+        }
     }
 
 
@@ -82,4 +132,8 @@ public partial class MainWindowModel : WPFMvvMBaseWindowModel
         Scope.Messenger.Send(new ApplicationShutdownNotification());
     }
 
+    public void Receive(CarEditNavigation message) => AboutCommand.Execute(message.CarId);
+    public void Receive(AboutNavigation message) => AboutCommand.Execute(null);
+    public void Receive(NewCarNavigation message) => NewCarCommand.Execute(null);
+    public void Receive(CarListNavigation message) => CarListCommand.Execute(null);
 }

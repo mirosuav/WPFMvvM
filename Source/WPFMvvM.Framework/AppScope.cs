@@ -7,7 +7,6 @@ namespace WPFMvvM.Framework;
 /// </summary>
 public class AppScope : IAppScope
 {
-
     public IGlobalExceptionHandler ExceptionHandler { get; }
     public IMessenger Messenger { get; }
     public IDialogService DialogService { get; }
@@ -24,11 +23,11 @@ public class AppScope : IAppScope
         UI = Services.GetRequiredService<IUIServices>();
     }
 
-    public ApplicationScopeHost CreateNewScope()
+    public ApplicationHostScope CreateNewScope()
     {
         var compScope = Services.CreateScope();
         var appScope = compScope.ServiceProvider.GetRequiredService<IAppScope>();
-        return new ApplicationScopeHost(compScope, appScope);
+        return new ApplicationHostScope(compScope, appScope);
     }
 
     public TViewModel ResolveViewModel<TViewModel>() where TViewModel : BaseViewModel
@@ -41,7 +40,7 @@ public class AppScope : IAppScope
         return Services.GetRequiredService(viewModelType) as BaseViewModel;
     }
 
-    public ApplicationScopeHost ResolveViewModelWithNewScope<TViewModel>(out TViewModel viewModel) where TViewModel : BaseViewModel
+    public ApplicationHostScope ResolveViewModelWithNewScope<TViewModel>(out TViewModel viewModel) where TViewModel : BaseViewModel
     {
         var vmScope = CreateNewScope();
         viewModel = vmScope.ApplicationScope.ResolveViewModel<TViewModel>();

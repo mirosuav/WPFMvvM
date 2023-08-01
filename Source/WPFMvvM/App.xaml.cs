@@ -63,6 +63,7 @@ public partial class App : Application
     {
         // host.Logger!.LogInformation("ConfigureServices passed");
         services.AddScoped<IAppScope, WPFMvvMAppScope>();
+        services.AddScoped<WPFMvvMAppScope>();
         services.Configure<GeneralSettings>(context.Configuration.GetSection(nameof(GeneralSettings)));
         services.AddSingleton<MainWindowModel>();
         services.AddTransient<DashboardViewModel>();

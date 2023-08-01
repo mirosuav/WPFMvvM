@@ -47,6 +47,12 @@ public partial class CarModel : ChangeableModel
         MileageKm = mileageKm;
         Price = price;
     }
-
+    public static async Task<CarModel> Load(AppDbContext context, int id)
+    {
+        var car = await context.Cars.FindAsync(id).ConfigureAwait(false);
+        if (car is null)
+            throw new NullReferenceException($"Car with id = {id} not found");
+        return new CarModel(car);
+    }
 
 }
