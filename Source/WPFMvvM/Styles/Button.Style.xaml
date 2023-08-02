@@ -5,6 +5,7 @@
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderBrush" Value="DarkBlue" />
         <Setter Property="BorderThickness" Value="2" />
+        <Setter Property="Height" Value="30" />
     </Style>
 
 

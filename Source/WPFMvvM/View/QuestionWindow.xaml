@@ -7,21 +7,28 @@
     xmlns:v="clr-namespace:WPFMvvM.View"
     xmlns:vm="clr-namespace:WPFMvvM.ViewModel"
     Title="{Binding Title}"
-    MinWidth="300"
+    MinWidth="350"
     MinHeight="200"
     d:DataContext="{d:DesignInstance Type=vm:QuestionWindowModel}"
+    SizeToContent="WidthAndHeight"
     WindowStartupLocation="CenterScreen"
     WindowStyle="SingleBorderWindow"
     mc:Ignorable="d">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="3*" />
+            <RowDefinition Height="2*" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <TextBlock Margin="10,20,10,20" Text="{Binding Question}" />
+        <TextBlock
+            Margin="10,20,10,20"
+            FontSize="16"
+            Text="{Binding Question}" />
 
-        <DockPanel Grid.Row="1" LastChildFill="False">
+        <DockPanel
+            Grid.Row="1"
+            Margin="10"
+            LastChildFill="False">
 
 
             <Button

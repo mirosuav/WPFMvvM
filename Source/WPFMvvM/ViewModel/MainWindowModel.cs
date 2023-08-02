@@ -1,11 +1,13 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using System.Runtime.CompilerServices;
 using WPFMvvM.Framework.Exceptions;
 using WPFMvvM.Framework.Messages;
 using WPFMvvM.Framework.Utils;
 using WPFMvvM.Framework.ViewModel;
 using WPFMvvM.Messages;
 using WPFMvvM.Services;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace WPFMvvM.ViewModel;
 
@@ -14,7 +16,9 @@ public partial class MainWindowModel : WPFMvvMBaseWindowModel, //MainWindow work
     IRecipient<CarListNavigation>,
     IRecipient<NewCarNavigation>,
     IRecipient<AboutNavigation>,
-    IRecipient<CarEditNavigation>
+    IRecipient<CarEditNavigation>,
+    IRecipient<PromptMessage>,
+    IRecipient<QuestionMessage>
 {
     private IDisposable? contentVMCompositionScope;
     private readonly IOptions<GeneralSettings> generalSettings;
@@ -99,7 +103,7 @@ public partial class MainWindowModel : WPFMvvMBaseWindowModel, //MainWindow work
     }
 
     [RelayCommand]
-    async Task EditCar(int carID, CancellationToken token)
+    async Task CarEdit(int carID, CancellationToken token)
     {
         try
         {
@@ -114,26 +118,57 @@ public partial class MainWindowModel : WPFMvvMBaseWindowModel, //MainWindow work
         }
     }
 
+    [RelayCommand]
+    async Task PromptMessage(PromptMessage message, CancellationToken token)
+    {
+        try
+        {
+            using var scope = Scope.ResolveViewModelWithNewScope<PromptWindowModel>(out var vm);
+            await vm.Initialize(token, message);
+            Scope.DialogService.ShowDialog(vm);
+        }
+        catch (Exception ex)
+        {
+            Scope.ExceptionHandler.HandleError($"Error in {nameof(PromptMessageCommand)}", ex);
+        }
+    }
 
     [RelayCommand]
-    async Task Prompt(CancellationToken token)
+    async Task QuestionMessage(QuestionMessage message, CancellationToken token)
     {
-        using var scope = Scope.ResolveViewModelWithNewScope<PromptWindowModel>(out var vm);
-        await vm.Initialize(token);
-        Scope.DialogService.ShowDialog(vm);
+        try
+        {
+            using var scope = Scope.ResolveViewModelWithNewScope<QuestionWindowModel>(out var vm);
+            await vm.Initialize(token, message);
+            Scope.DialogService.ShowDialog(vm);
+            message.Reply(vm.Result);
+        }
+        catch (Exception ex)
+        {
+            Scope.ExceptionHandler.HandleError($"Error in {nameof(QuestionMessageCommand)}", ex);
+        }
     }
 
 
     [RelayCommand()]
     void Exit()
     {
-        Scope.Messenger.Send(new ApplicationShutdownNotification());
+        try
+        {
+            Scope.Messenger.Send(new ApplicationShutdownNotification());
+        }
+        catch (Exception ex)
+        {
+            Scope.ExceptionHandler.HandleError($"Error in {nameof(ExitCommand)}", ex);
+        }
     }
 
-    public void Receive(CarEditNavigation message) => AboutCommand.Execute(message.CarId);
-    public void Receive(AboutNavigation message) => AboutCommand.Execute(null);
+    public void Receive(CarEditNavigation message) => CarEditCommand.Execute(message.CarId);
     public void Receive(NewCarNavigation message) => NewCarCommand.Execute(null);
     public void Receive(CarListNavigation message) => CarListCommand.Execute(null);
+    public void Receive(QuestionMessage message) => QuestionMessageCommand.Execute(message); //TODO MainWindowModel has too much responsibilities SOLID
+    public void Receive(PromptMessage message) => PromptMessageCommand.Execute(message); //TODO MainWindowModel has too much responsibilities SOLID
+    public void Receive(AboutNavigation message) => AboutCommand.Execute(null);
 
     protected override void OnDisposing()
     {

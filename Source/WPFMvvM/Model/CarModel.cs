@@ -1,4 +1,5 @@
-﻿using WPFMvvM.Domain;
+﻿using System.ComponentModel.DataAnnotations;
+using WPFMvvM.Domain;
 
 namespace WPFMvvM.Model;
 
@@ -11,30 +12,35 @@ public partial class CarModel : ChangeableModel
     public int? EntityId => Entity.Id;
     public bool IsNew => Entity.IsNew;
 
+    [Required]
     public CarBrands Brand
     {
         get => Entity.Brand;
         set => SetPropertyAndMarkAsChanged(Entity.Brand, value, Entity, (e, x) => e.Brand = x);
     }
 
+    [Required(AllowEmptyStrings = false)]
     public string? ModelName
     {
         get => Entity.ModelName;
         set => SetPropertyAndMarkAsChanged(Entity.ModelName, value, Entity, (e, x) => e.ModelName = x);
     }
 
+    [Required]
     public int ProductionYear
     {
         get => Entity.ProductionYear;
         set => SetPropertyAndMarkAsChanged(Entity.ProductionYear, value, Entity, (e, x) => e.ProductionYear = x);
     }
 
+    [Required]
     public int MileageKm
     {
         get => Entity.MileageKm;
         set => SetPropertyAndMarkAsChanged(Entity.MileageKm, value, Entity, (e, x) => e.MileageKm = x);
     }
 
+    [Required]
     public decimal Price
     {
         get => Entity.Price;
@@ -57,6 +63,18 @@ public partial class CarModel : ChangeableModel
         if (car is null)
             throw new NullReferenceException($"Car with id = {id} not found");
         return new CarModel(context, car);
+    }
+
+    public void Save()
+    {
+        if (IsNew)
+        {
+            dbContext.Cars.Add(Entity);
+        }
+        else
+        {
+            dbContext.Entry(Entity).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+        }
     }
 
     public void Reload()

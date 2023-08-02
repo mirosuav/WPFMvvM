@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 using WPFMvvM.Extensions;
 using WPFMvvM.Framework.Utils;
+using WPFMvvM.Messages;
 using WPFMvvM.Services;
 
 namespace WPFMvvM.ViewModel;
@@ -34,8 +35,9 @@ public partial class QuestionWindowModel : WPFMvvMBaseWindowModel
 
     protected override ValueTask InitializeInternal(CancellationToken cancelltoken, params object[] parameters)
     {
-        Title = parameters.GetFirstAs<string>() ?? "Question";
-        Question = parameters.GetSecondAs<string>();
+        var message = parameters.GetFirstAs<QuestionMessage>();
+        Title = message?.Title ?? "Question";
+        Question = message?.Question;
         return base.InitializeInternal(cancelltoken, parameters);
     }
 }

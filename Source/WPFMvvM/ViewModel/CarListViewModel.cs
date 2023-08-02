@@ -41,6 +41,11 @@ public partial class CarListViewModel : WPFMvvMBaseViewModel
     {
         try
         {
+            var deleteQuestion = new QuestionMessage("Deleting car", $"Are you sure to delete car {model.ModelName}?");
+            Scope.Messenger.Send(deleteQuestion);
+            if (deleteQuestion.Response != WindowResult.OkYes)
+                return;
+
             Cars!.Remove(model);
             if (model.Delete())
                 await Scope.Data.SaveChangesAsync(token);
