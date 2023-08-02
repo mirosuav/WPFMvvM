@@ -47,9 +47,22 @@ public abstract partial class ChangeableModel : BaseModel
 
 
     [System.Diagnostics.DebuggerStepThrough]
-    protected bool SetPropertyAndMarkAsChanged<T>([NotNullIfNotNull(nameof(newValue))] ref T field, T newValue, [CallerMemberName] string propertyName = null)
+    protected bool SetPropertyAndMarkAsChanged<T>([NotNullIfNotNull(nameof(newValue))] ref T field, T newValue, 
+        [CallerMemberName] string? propertyName = null)
     {
         if (base.SetProperty<T>(ref field, newValue, propertyName))
+        {
+            MarkAsChanged();
+            return true;
+        }
+        return false;
+    }
+
+    protected bool SetPropertyAndMarkAsChanged<TModel, T>(T oldValue, T newValue, 
+        TModel model, Action<TModel, T> callback, [CallerMemberName] string? propertyName = null)
+        where TModel : class
+    {
+        if (base.SetProperty<TModel, T>(oldValue, newValue, model, callback, propertyName))
         {
             MarkAsChanged();
             return true;

@@ -10,7 +10,7 @@ using WPFMvvM.Services;
 namespace WPFMvvM.ViewModel;
 
 [UseWindow(typeof(MainWindow))]
-public partial class MainWindowModel : WPFMvvMBaseWindowModel,
+public partial class MainWindowModel : WPFMvvMBaseWindowModel, //MainWindow works as a handler for all messages
     IRecipient<CarListNavigation>,
     IRecipient<NewCarNavigation>,
     IRecipient<AboutNavigation>,
@@ -21,9 +21,6 @@ public partial class MainWindowModel : WPFMvvMBaseWindowModel,
 
     [ObservableProperty]
     BaseViewModel? contenViewModel;
-
-
-
     public MainWindowModel(WPFMvvMAppScope scope, IOptions<GeneralSettings> generalSettings)
         : base(scope)
     {
@@ -118,13 +115,14 @@ public partial class MainWindowModel : WPFMvvMBaseWindowModel,
     }
 
 
-    //[RelayCommand]
-    //async Task AskUser(CancellationToken token)
-    //{
-    //    var scope = Scope.ResolveViewModelWithNewScope<PromptWindowModel>(out var vm);
-    //    await vm.Initialize(token);
-    //    Scope.DialogService.ShowDialog(vm);
-    //}
+    [RelayCommand]
+    async Task Prompt(CancellationToken token)
+    {
+        using var scope = Scope.ResolveViewModelWithNewScope<PromptWindowModel>(out var vm);
+        await vm.Initialize(token);
+        Scope.DialogService.ShowDialog(vm);
+    }
+
 
     [RelayCommand()]
     void Exit()
@@ -136,4 +134,10 @@ public partial class MainWindowModel : WPFMvvMBaseWindowModel,
     public void Receive(AboutNavigation message) => AboutCommand.Execute(null);
     public void Receive(NewCarNavigation message) => NewCarCommand.Execute(null);
     public void Receive(CarListNavigation message) => CarListCommand.Execute(null);
+
+    protected override void OnDisposing()
+    {
+        base.OnDisposing();
+        ContenViewModel?.Dispose();
+    }
 }

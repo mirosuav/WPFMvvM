@@ -1,4 +1,5 @@
 ﻿using WPFMvvM.Framework.Exceptions;
+using WPFMvvM.Framework.Services;
 
 namespace WPFMvvM.Framework;
 public interface IAppScope

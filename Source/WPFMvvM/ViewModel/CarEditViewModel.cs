@@ -7,7 +7,7 @@ namespace WPFMvvM.ViewModel;
 public partial class CarEditViewModel : WPFMvvMBaseViewModel
 {
     [ObservableProperty]
-    private CarModel? model;
+    CarModel? model;
 
     public CarEditViewModel(WPFMvvMAppScope scope) : base(scope)
     {

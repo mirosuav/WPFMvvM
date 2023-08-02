@@ -5,16 +5,15 @@ using WPFMvvM.Services;
 
 namespace WPFMvvM.ViewModel;
 
-[UseWindow(typeof(PromptWindow))]
-public partial class PromptWindowModel : WPFMvvMBaseWindowModel
+[UseWindow(typeof(QuestionWindow))]
+public partial class QuestionWindowModel : WPFMvvMBaseWindowModel
 {
     [ObservableProperty]
-    string? message;
+    string? question;
 
     [ObservableProperty]
     WindowResult result;
-
-    public PromptWindowModel(WPFMvvMAppScope scope) : base(scope)
+    public QuestionWindowModel(WPFMvvMAppScope scope) : base(scope)
     {
     }
 
@@ -25,11 +24,18 @@ public partial class PromptWindowModel : WPFMvvMBaseWindowModel
         await Close(token: token);
     }
 
+    [RelayCommand]
+    async Task No(CancellationToken token)
+    {
+        Result = WindowResult.No;
+        await Close(token: token);
+    }
+
 
     protected override ValueTask InitializeInternal(CancellationToken cancelltoken, params object[] parameters)
     {
-        Title = parameters.GetFirstAs<string>() ?? "Information";
-        Message = parameters.GetSecondAs<string>();
+        Title = parameters.GetFirstAs<string>() ?? "Question";
+        Question = parameters.GetSecondAs<string>();
         return base.InitializeInternal(cancelltoken, parameters);
     }
 }

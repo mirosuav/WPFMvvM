@@ -12,7 +12,8 @@ public class AppDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Car>().HasData(
+        modelBuilder.Entity<Car>()
+            .HasData(
             new Car { Id = 1, Brand = CarBrands.Toyota, ModelName = "RAW4", ProductionYear = 2020, MileageKm = 58000, Price = 89000 },
             new Car { Id = 2, Brand = CarBrands.Toyota, ModelName = "Corolla", ProductionYear = 2022, MileageKm = 10500, Price = 64200 },
             new Car { Id = 3, Brand = CarBrands.Kia, ModelName = "Sportage", ProductionYear = 2019, MileageKm = 34000, Price = 59000 },

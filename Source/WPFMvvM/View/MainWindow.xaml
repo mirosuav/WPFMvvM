@@ -5,7 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:v="clr-namespace:WPFMvvM.View"
-    xmlns:vm="clr-namespace:WPFMvvM.ViewModel"
+    xmlns:vm="clr-namespace:WPFMvvM.ViewModel" 
     Title="{Binding Title}"
     Width="800"
     Height="450"
@@ -13,11 +13,20 @@
     mc:Ignorable="d">
 
     <Window.Resources>
-        <DataTemplate DataType="{x:Type vm:AboutViewModel}">
-            <v:AboutView DataContext="{Binding .}" />
-        </DataTemplate>
         <DataTemplate DataType="{x:Type vm:DashboardViewModel}">
             <v:DashboardView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:CarListViewModel}">
+            <v:CarListView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:CarEditViewModel}">
+            <v:CarEditView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:CarNewViewModel}">
+            <v:CarNewView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:AboutViewModel}">
+            <v:AboutView />
         </DataTemplate>
     </Window.Resources>
     <Grid>

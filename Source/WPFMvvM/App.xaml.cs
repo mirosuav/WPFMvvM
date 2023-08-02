@@ -40,10 +40,11 @@ public partial class App : Application
     }
 
 
-    public ValueTask OnStartup(IAppScope mainAppScope, CancellationTokenSource cts, string[]? args)
+    public async ValueTask OnStartup(IAppScope mainAppScope, CancellationTokenSource cts, string[]? args)
     {
         //  host.Logger!.LogInformation("Application Startup passed");
-        return ValueTask.CompletedTask;
+        if (mainAppScope is WPFMvvMAppScope scope)
+            await scope.Data.Database.EnsureCreatedAsync(cts.Token);
     }
 
 

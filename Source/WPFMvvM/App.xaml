@@ -4,4 +4,17 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="clr-namespace:WPFMvvM"
     xmlns:v="clr-namespace:WPFMvvM.View"
-    xmlns:vm="clr-namespace:WPFMvvM.ViewModel" />
+    xmlns:vm="clr-namespace:WPFMvvM.ViewModel">
+
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/WPFMvvM;component/Styles/Button.Style.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <!--  You have to add other style here only  -->
+
+        </ResourceDictionary>
+    </Application.Resources>
+
+</Application>

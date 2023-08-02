@@ -13,6 +13,6 @@ public class CarCollectionModel : ObservableCollection<CarModel>
     public static async Task<CarCollectionModel> Load(AppDbContext context)
     {
         var cars = await context.Cars.OrderBy(x => x.CreatedOn).ToArrayAsync().ConfigureAwait(false);
-        return new CarCollectionModel(cars.Select(c => new CarModel(c)));
+        return new CarCollectionModel(cars.Select(c => new CarModel(context, c)));
     }
 }
