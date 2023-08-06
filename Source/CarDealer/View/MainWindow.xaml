@@ -1,0 +1,56 @@
+﻿<Window
+    x:Class="CarDealer.View.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:v="clr-namespace:CarDealer.View"
+    xmlns:vm="clr-namespace:CarDealer.ViewModel"
+    Title="{Binding Title}"
+    Width="800"
+    Height="450"
+    d:DataContext="{d:DesignInstance Type=vm:MainWindowModel}"
+    mc:Ignorable="d">
+
+    <Window.Resources>
+        <DataTemplate DataType="{x:Type vm:DashboardViewModel}">
+            <v:DashboardView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:CarListViewModel}">
+            <v:CarListView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:CarEditViewModel}">
+            <v:CarEditView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:CarNewViewModel}">
+            <v:CarNewView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:AboutViewModel}">
+            <v:AboutView />
+        </DataTemplate>
+    </Window.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Menu Grid.Row="0">
+            <MenuItem Header="_Application">
+                <MenuItem Command="{Binding DashboardCommand}" Header="_Dashboard" />
+                <MenuItem Command="{Binding CarListCommand}" Header="_Car list" />
+                <MenuItem Command="{Binding NewCarCommand}" Header="_New car" />
+                <MenuItem Command="{Binding AboutCommand}" Header="_About" />
+                <Separator />
+                <MenuItem Command="{Binding ExitCommand}" Header="E_xit" />
+            </MenuItem>
+        </Menu>
+
+        <ContentControl
+            Grid.Row="1"
+            Margin="10"
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Stretch"
+            Content="{Binding ContenViewModel}" />
+    </Grid>
+</Window>

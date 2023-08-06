@@ -31,9 +31,11 @@ public class DialogService : IDialogService
 
     Window ResolveWindowFor(BaseWindowModel windowModel)
     {
-        var view = ResolveAttributedView(windowModel);
+        var viewAttribute = ResolveWindowAttribute(windowModel);
 
-        var window = view is Window uiWindow ? uiWindow : WrapWithShellWindow(view);
+        var view = CreateView(viewAttribute);
+
+        var window = view is Window uiWindow ? uiWindow : WrapViewInWindow(view, viewAttribute);
 
         EnsureWindowParent(window);
 
@@ -42,23 +44,36 @@ public class DialogService : IDialogService
         return window;
     }
 
-    static Window WrapWithShellWindow(ContentControl ui)
+    static ContentControl CreateView(UseWindowAttribute viewAttribute)
     {
-        return new ShellWindow { Content = ui };
+        var view = Activator.CreateInstance(viewAttribute.ViewType) as ContentControl;
+        Guard.IsNotNull(view, $"Could not create an instance of UI part: {viewAttribute.ViewType.FullName}");
+        return view;
     }
 
-    ContentControl ResolveAttributedView(BaseWindowModel windowModel)
+    static Window WrapViewInWindow(ContentControl ui, UseWindowAttribute viewAttribute)
+    {
+        return new Window
+        {
+            SizeToContent = SizeToContent.WidthAndHeight,
+            WindowStyle = WindowStyle.ToolWindow,
+            Width = viewAttribute.ViewWidth,
+            Height = viewAttribute.ViewHeight,
+            Title = viewAttribute.Title,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            Content = ui
+        };
+    }
+
+    static UseWindowAttribute ResolveWindowAttribute(BaseWindowModel windowModel)
     {
         var vmAttr = windowModel.GetType().GetCustomAttribute<UseWindowAttribute>();
         Guard.IsNotNull(vmAttr, $"No {nameof(UseWindowAttribute)} defined on {windowModel.GetType().FullName}");
 
-        if (!vmAttr.ViewType.IsAssignableTo(typeof(Window)))
-            throw new Exception($"Type {vmAttr.ViewType.Name} is not a Window type!");
+        if (!vmAttr.ViewType.IsAssignableTo(typeof(Window)) && !vmAttr.UseGenericDialog)
+            throw new Exception($"Type {vmAttr.ViewType.Name} is not a Window type, set UseGenericDialog=true to use generic window!");
 
-        var view = Activator.CreateInstance(vmAttr.ViewType) as ContentControl;
-        Guard.IsNotNull(view, $"Could not create an instance of UI part: {vmAttr.ViewType.FullName}");
-
-        return view;
+        return vmAttr;
     }
 
     void EnsureWindowParent(Window window)

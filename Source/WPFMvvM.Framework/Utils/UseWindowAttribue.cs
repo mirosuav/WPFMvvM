@@ -12,6 +12,10 @@ public class UseWindowAttribute : Attribute
 
     public int ViewWidth { get; set; }
 
+    public string? Title { get; set; }
+
+    public bool UseGenericDialog { get; set; } = false;
+
     public UseWindowAttribute(Type viewType)
     {
         ViewType = viewType;

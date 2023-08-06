@@ -11,5 +11,4 @@ global using WPFMvvM.Framework.Extensions;
 global using WPFMvvM.Framework.Messages;
 global using WPFMvvM.Framework.Services;
 global using WPFMvvM.Framework.Utils;
-global using WPFMvvM.Framework.View;
 global using WPFMvvM.Framework.ViewModel;

@@ -31,7 +31,6 @@ public sealed partial class WPFApplicationHost<TApp> : IWPFApplicationHost<TApp>
     public AppInfo? AppInfo { get; private set; }
     public IServiceProvider Services => _mainServiceScope?.ServiceProvider ?? throw new InvalidOperationException("Host is not running");
     public ILogger<TApp>? Logger { get; private set; }
-    public ApplicationHostScope? ProgramScope { get; private set; }
     public Application HostedApplication => _hostedApp;
     public IAppScope? ApplicationScope { get; private set; }
 

@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net7.0-windows</TargetFramework>
+		<Nullable>enable</Nullable>
+		<UseWPF>true</UseWPF>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<StartupObject>CarDealer.Program</StartupObject>
+		<Company>Company</Company>
+		<ProductName>CarDealer App</ProductName>
+		<ProductVersion>1.0.0</ProductVersion>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<AssemblyAttribute Include="System.Runtime.InteropServices.GuidAttribute">
+			<_Parameter1>97081F26-7F67-430C-8DD0-27D579DE7F1C</_Parameter1>
+		</AssemblyAttribute>
+		<InternalsVisibleTo Include="CarDealer.Tests" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.9" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="7.0.9" />
+		<PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.39" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\WPFMvvM.Framework\WPFMvvM.Framework.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Update="appsettings.json">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>			
+		</None>
+	</ItemGroup>
+
+
+</Project>
