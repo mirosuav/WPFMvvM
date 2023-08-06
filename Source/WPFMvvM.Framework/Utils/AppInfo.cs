@@ -5,11 +5,9 @@ using System.Runtime.InteropServices;
 
 namespace WPFMvvM.Framework.Utils;
 
-public partial class AppInfo : ObservableObject
+public class AppInfo
 {
     public string EnvironmentName;
-
-
     public string AppAssemblyPath;
     public Guid? Id;
     public string? Name;

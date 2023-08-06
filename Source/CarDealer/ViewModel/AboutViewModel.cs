@@ -1,4 +1,5 @@
-﻿using CarDealer.Services;
+﻿using CarDealer.Model;
+using CarDealer.Services;
 using WPFMvvM.Framework.Utils;
 
 namespace CarDealer.ViewModel;
@@ -7,11 +8,11 @@ namespace CarDealer.ViewModel;
 public partial class AboutViewModel : CarDealerBaseWindowModel
 {
     [ObservableProperty]
-    private AppInfo appInfo;
+    private AppInfoModel model;
 
     public AboutViewModel(CarDealerAppScope scope, AppInfo appInfo) : base(scope)
     {
-        this.appInfo = appInfo;
+        this.model = new AppInfoModel(appInfo);
     }
 
     protected override ValueTask InitializeInternal(CancellationToken cancelltoken, params object[] parameters)

@@ -10,7 +10,69 @@
     MinHeight="200"
     d:DataContext="{d:DesignInstance Type=vm:AboutViewModel}"
     mc:Ignorable="d">
-    <Grid>
-        <TextBox Text="{Binding AppInfo, Mode=OneWay}" TextWrapping="Wrap" />
+    <Grid Margin="10">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" MinWidth="100" />
+            <ColumnDefinition Width="3*" MinWidth="250" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" MinHeight="30" />
+            <RowDefinition Height="Auto" MinHeight="30" />
+            <RowDefinition Height="Auto" MinHeight="30" />
+            <RowDefinition Height="Auto" MinHeight="30" />
+            <RowDefinition Height="Auto" MinHeight="30" />
+            <RowDefinition Height="Auto" MinHeight="30" />
+            <RowDefinition Height="Auto" MinHeight="30" />
+        </Grid.RowDefinitions>
+
+        <Grid.Resources>
+            <Style BasedOn="{StaticResource {x:Type Label}}" TargetType="{x:Type Label}">
+                <Setter Property="FontSize" Value="14" />
+                <Setter Property="FontWeight" Value="Bold" />
+            </Style>
+            <Style BasedOn="{StaticResource {x:Type TextBlock}}" TargetType="{x:Type TextBlock}">
+                <Setter Property="FontSize" Value="14" />
+            </Style>
+        </Grid.Resources>
+
+        <Label Content="Environment:" />
+        <TextBlock Grid.Column="1" Text="{Binding Model.EnvironmentName, Mode=OneWay}" />
+
+        <Label Grid.Row="1" Content="Name:" />
+        <TextBlock
+            Grid.Row="1"
+            Grid.Column="1"
+            Text="{Binding Model.Name, Mode=OneWay}" />
+
+        <Label Grid.Row="2" Content="Id:" />
+        <TextBlock
+            Grid.Row="2"
+            Grid.Column="1"
+            Text="{Binding Model.Id, Mode=OneWay}" />
+
+        <Label Grid.Row="3" Content="VersionInfo:" />
+        <TextBlock
+            Grid.Row="3"
+            Grid.Column="1"
+            Text="{Binding Model.VersionInfo, Mode=OneWay}" />
+
+        <Label Grid.Row="4" Content="AppAssemblyPath:" />
+        <TextBlock
+            Grid.Row="4"
+            Grid.Column="1"
+            Text="{Binding Model.AppAssemblyPath, Mode=OneWay}" />
+
+        <Label Grid.Row="5" Content="AppDataDirectory:" />
+        <TextBlock
+            Grid.Row="5"
+            Grid.Column="1"
+            Text="{Binding Model.AppDataDirectory, Mode=OneWay}" />
+
+        <Label Grid.Row="6" Content="AppDirectory:" />
+        <TextBlock
+            Grid.Row="6"
+            Grid.Column="1"
+            Text="{Binding Model.AppDirectory, Mode=OneWay}" />
+
     </Grid>
 </UserControl>
