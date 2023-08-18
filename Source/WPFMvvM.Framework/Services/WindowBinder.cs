@@ -9,9 +9,9 @@ namespace WPFMvvM.Framework.Services;
 public class WindowBinder : IWindowBinder
 {
     private readonly IMessenger messenger;
-    private readonly IGlobalExceptionHandler exceptionHandler;
+    private readonly IExceptionHandler exceptionHandler;
 
-    public WindowBinder(IMessenger messenger, IGlobalExceptionHandler exceptionHandler)
+    public WindowBinder(IMessenger messenger, IExceptionHandler exceptionHandler)
     {
         Guard.IsNotNull(messenger);
         Guard.IsNotNull(exceptionHandler);

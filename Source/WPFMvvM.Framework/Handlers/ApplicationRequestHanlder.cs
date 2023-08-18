@@ -2,15 +2,15 @@
 
 public class ApplicationRequestHanlder : IGlobalMessageHandler, IRecipient<ApplicationShutdownNotification>
 {
-    public readonly IWPFApplicationHost appHost;
+    public readonly Application hostedApp;
 
-    public ApplicationRequestHanlder(IWPFApplicationHost appHost)
+    public ApplicationRequestHanlder(IWPFAppHost appHost)
     {
-        this.appHost = appHost;
+        this.hostedApp = appHost.HostedApplication;
     }
 
     public void Receive(ApplicationShutdownNotification message)
     {
-        appHost.HostedApplication.Shutdown();
+        hostedApp.Shutdown();
     }
 }

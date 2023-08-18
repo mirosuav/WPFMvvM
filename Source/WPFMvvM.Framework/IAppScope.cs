@@ -5,7 +5,7 @@ namespace WPFMvvM.Framework;
 public interface IAppScope
 {
     IServiceProvider Services { get; }
-    IGlobalExceptionHandler ExceptionHandler { get; }
+    IExceptionHandler ExceptionHandler { get; }
     IDialogService DialogService { get; }
     IUIServices UI { get; }
     IMessenger Messenger { get; }

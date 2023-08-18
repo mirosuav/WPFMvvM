@@ -11,7 +11,7 @@ public class DialogService : IDialogService
     private readonly Window _mainAppWindow;
     private readonly IWindowBinder _windowBinder;
 
-    public DialogService(IWPFApplicationHost appHost, IWindowBinder windowBinder)
+    public DialogService(IWPFAppHost appHost, IWindowBinder windowBinder)
     {
         _mainAppWindow = appHost.HostedApplication.MainWindow;
         _windowBinder = windowBinder;

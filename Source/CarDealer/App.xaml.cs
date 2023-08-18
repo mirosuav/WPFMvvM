@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Globalization;
+using WPFMvvM.Framework.Exceptions;
 
 [assembly: ThemeInfo(
     ResourceDictionaryLocation.SourceAssembly, //where theme specific resource dictionaries are located
@@ -20,30 +21,31 @@ using System.Globalization;
 
 namespace CarDealer;
 
-public partial class App : Application
+public partial class App : Application, IExceptionHandler
 {
-    private readonly IWPFApplicationHost<App> host;
+    private readonly IWPFAppHost<App> host;
 
     public App()
     {
-        host = WPFApplicationHost<App>
-                    .CreateWithMainViewModel<MainWindowModel>(this)
-                    .ConfigureGlobalExceptionHanlder(GlobalExcepionHandler)
+        host = WPFAppHost<App>
+                    .CreateBuilder<MainWindowModel>(this)
+                    .ConfigureGlobalExceptionHanlder(_ => this)
                     .ConfigureServices(ConfigureServices)
                     .ConfigureLogging(ConfigureLogging)
                     .ConfigureAppConfiguration(ConfigureAppConfiguration)
                     .UseAppCulture(CultureInfo.GetCultureInfo("en-US"))
-                    .UseStartup(OnStartup);
+                    .UseStartup(OnStartup)
+                    .Build();
     }
 
     protected override async void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
-        await host.Run(e.Args);
+        await host.StartAsync(e.Args);
     }
 
 
-    public void GlobalExcepionHandler(LogLevel logLevel, string message, Exception? exception = null)
+    public void Handle(LogLevel logLevel, string message, Exception? exception = null)
     {
         host?.ApplicationScope?.Messenger.Send(new PromptMessage(logLevel.ToString(), message));
         //  host.Logger!.Log(logLevel, exception, message);
@@ -51,7 +53,7 @@ public partial class App : Application
     }
 
 
-    public async ValueTask OnStartup(IAppScope mainAppScope, CancellationTokenSource cts, string[]? args)
+     async ValueTask OnStartup(IAppScope mainAppScope, CancellationTokenSource cts, string[]? args)
     {
         //  host.Logger!.LogInformation("Application Startup passed");
         if (mainAppScope is CarDealerAppScope scope)
@@ -59,28 +61,25 @@ public partial class App : Application
     }
 
 
-    public void ConfigureAppConfiguration(HostBuilderContext context, IConfigurationBuilder configuration)
+     void ConfigureAppConfiguration(HostBuilderContext context, IConfigurationBuilder configuration)
     {
         //  host.Logger!.LogInformation("ConfigureAppConfiguration passed");
     }
 
-    public void ConfigureLogging(HostBuilderContext context, ILoggingBuilder services)
+     void ConfigureLogging(HostBuilderContext context, ILoggingBuilder services)
     {
         //  host.Logger!.LogInformation("ConfigureLogging passed");
     }
 
 
 
-    public void ConfigureServices(HostBuilderContext context, IServiceCollection services)
+     void ConfigureServices(HostBuilderContext context, IServiceCollection services)
     {
         // host.Logger!.LogInformation("ConfigureServices passed");
         services.AddScoped<IAppScope, CarDealerAppScope>();
         services.AddScoped<CarDealerAppScope>();
         services.Configure<GeneralSettings>(context.Configuration.GetSection(nameof(GeneralSettings)));
-        services.AddSingleton<MainWindowModel>();
-        services.AddTransient<DashboardViewModel>();
-        services.AddTransient<AboutViewModel>();
-        services.AddTransient<PromptWindowModel>();
+
         services.AddDbContext<AppDbContext>(x =>
         {
             x.UseInMemoryDatabase("CarDealer", db =>

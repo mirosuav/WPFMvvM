@@ -8,7 +8,7 @@ namespace WPFMvvM.Framework;
 /// </summary>
 public class AppScope : IAppScope
 {
-    public IGlobalExceptionHandler ExceptionHandler { get; }
+    public IExceptionHandler ExceptionHandler { get; }
     public IMessenger Messenger { get; }
     public IDialogService DialogService { get; }
     public IUIServices UI { get; }
@@ -18,7 +18,7 @@ public class AppScope : IAppScope
     {
         Guard.IsNotNull(services);
         Services = services;
-        ExceptionHandler = Services.GetRequiredService<IGlobalExceptionHandler>();
+        ExceptionHandler = Services.GetRequiredService<IExceptionHandler>();
         Messenger = Services.GetRequiredService<IMessenger>();
         DialogService = Services.GetRequiredService<IDialogService>();
         UI = Services.GetRequiredService<IUIServices>();
