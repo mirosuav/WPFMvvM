@@ -14,7 +14,7 @@ public sealed class WPFAppHost<TApp> : IWPFAppHost<TApp> where TApp : Applicatio
     private readonly IHost _genericHost;
     private readonly ApplicationCulture _initialCulture;
     private Type? _mainWindowModelType;
-    private AppStartupDelegate _onAppStartup;
+    private AppStartupDelegate? _onAppStartup;
     private AppExceptionHandler _appExceptionHandler;
 
     //keep global recipient references so their're not garbage collected when using WeakReferenceMessenger 
@@ -31,7 +31,7 @@ public sealed class WPFAppHost<TApp> : IWPFAppHost<TApp> where TApp : Applicatio
 
     internal WPFAppHost(TApp hostedApp,
         IHost genericHost,
-        AppStartupDelegate onAppStartup,
+        AppStartupDelegate? onAppStartup,
         Type? mainWindowModelType,
         ApplicationCulture? initialCulture)
     {
@@ -43,10 +43,10 @@ public sealed class WPFAppHost<TApp> : IWPFAppHost<TApp> where TApp : Applicatio
         AppInfo = Services.GetRequiredService<AppInfo>();
         Logger = Services.GetRequiredService<ILogger<WPFAppHost<TApp>>>();
         ApplicationScope = Services.GetRequiredService<IAppScope>();
+        _appExceptionHandler = AppExceptionHandler.Create(HostedApp, Logger, Services.GetService<IExceptionHandler>());
         _onAppStartup = onAppStartup;
         _mainWindowModelType = mainWindowModelType;
         _initialCulture = initialCulture ?? ApplicationCulture.Current;
-        _appExceptionHandler = Exceptions.AppExceptionHandler.Create(HostedApp, Logger, Services.GetService<AppExceptionHandler>());
     }
 
     public static WPFAppHostBuilder<TApp> CreateBuilder<TMainViewModel>(TApp hostedApp)
@@ -59,7 +59,7 @@ public sealed class WPFAppHost<TApp> : IWPFAppHost<TApp> where TApp : Applicatio
 
     public Task StartAsync(string[]? args = null, CancellationToken token = default)
     {
-        Validate();
+        ValidateMainWindowType();
         ConfigureCommonAspects(_genericHost);
         SetupHostedAppBehaviour();
         return Start(args, token);
@@ -104,12 +104,13 @@ public sealed class WPFAppHost<TApp> : IWPFAppHost<TApp> where TApp : Applicatio
 
             startupCancellation.Token.ThrowIfCancellationRequested();
 
-            await _onAppStartup.Invoke(ApplicationScope, startupCancellation, args);
+            if (_onAppStartup is not null)
+            {
+                await _onAppStartup.Invoke(ApplicationScope, startupCancellation, args);
+                startupCancellation.Token.ThrowIfCancellationRequested();
+            }
 
-            startupCancellation.Token.ThrowIfCancellationRequested();
-
-            //MainWindow Is Optional. By default we assume it is resolved and shown by the hosted app
-            await CreateAndShowMainWindow(startupCancellation.Token);//TODO make it optional to define MainWindow
+            await CreateAndShowMainWindow(startupCancellation.Token);
 
             startupCancellation.Token.ThrowIfCancellationRequested();
         }
@@ -132,6 +133,9 @@ public sealed class WPFAppHost<TApp> : IWPFAppHost<TApp> where TApp : Applicatio
 
     async Task CreateAndShowMainWindow(CancellationToken token)
     {
+        if (_mainWindowModelType is not null)
+            return;
+
         var mainWindowModel = Services.GetRequiredService(_mainWindowModelType!) as BaseWindowModel;
         ArgumentNullException.ThrowIfNull(mainWindowModel);
 
@@ -142,9 +146,9 @@ public sealed class WPFAppHost<TApp> : IWPFAppHost<TApp> where TApp : Applicatio
         windowService.Show(mainWindowModel);
     }
 
-    public void Validate()
+    public void ValidateMainWindowType()
     {
-        if (_mainWindowModelType is null || !_mainWindowModelType.IsAssignableTo(typeof(BaseWindowModel)))
+        if (_mainWindowModelType is not null && !_mainWindowModelType.IsAssignableTo(typeof(BaseWindowModel)))
             throw new InvalidOperationException("Invalid main window type!");
     }
 

@@ -15,7 +15,7 @@ public class WPFAppHostBuilder<TApp> : IDisposable where TApp : Application
     private List<Action<HostBuilderContext, IConfigurationBuilder>> configureAppConfigurationDelegates = new();
     private Func<IServiceProvider, IExceptionHandler>? exceptionHandlerDelegate;
     private ApplicationCulture initialAppCulture;
-    private AppStartupDelegate onAppStartup;
+    private AppStartupDelegate? onAppStartup;
     private Type? mainWindowModelType;
 
     public static WPFAppHostBuilder<TApp> CreateWithMainViewModel<TMainViewModel>(TApp hostedApp) where TMainViewModel : BaseWindowModel
@@ -29,7 +29,6 @@ public class WPFAppHostBuilder<TApp> : IDisposable where TApp : Application
         initialAppCulture = ApplicationCulture.Current;
         hostedApplication = hostedApp;
         configureServicesDelegates.Add(ConfigureServicesInternal);
-        onAppStartup = new AppStartupDelegate((_, _, _) => ValueTask.CompletedTask);
     }
 
     public WPFAppHostBuilder<TApp> ConfigureServices(Action<HostBuilderContext, IServiceCollection> configureServicesHosted)
@@ -150,14 +149,12 @@ public class WPFAppHostBuilder<TApp> : IDisposable where TApp : Application
 
     public IWPFAppHost<TApp> Build(string[]? args = null)
     {
-        var genericHost = BuildGenericHost(args);
-        var host = new WPFAppHost<TApp>(
-                                        hostedApplication,
-                                        genericHost,
-                                        onAppStartup,
-                                        mainWindowModelType,
-                                        initialAppCulture);
-        return host;
+        return new WPFAppHost<TApp>(
+                                    hostedApplication,
+                                    BuildGenericHost(args),
+                                    onAppStartup,
+                                    mainWindowModelType,
+                                    initialAppCulture);
     }
 
     public void Dispose()
