@@ -23,12 +23,18 @@ namespace CarDealer;
 
 public partial class App : Application, IExceptionHandler
 {
-    private readonly IWPFAppHost<App> host;
+    private readonly IWPFAppHost host;
+    WeakReference builderRef;
 
     public App()
     {
-        host = WPFAppHost<App>
-                    .CreateBuilder<MainWindowModel>(this)
+        var builder = WPFAppHost
+                    .CreateBuilder(this);
+
+        builderRef = new WeakReference(builder);
+
+        host = builder
+                    .UseMainWindowModel(typeof(MainWindowModel))
                     .ConfigureGlobalExceptionHanlder(_ => this)
                     .ConfigureServices(ConfigureServices)
                     .ConfigureLogging(ConfigureLogging)
@@ -42,12 +48,17 @@ public partial class App : Application, IExceptionHandler
     {
         base.OnStartup(e);
         await host.StartAsync(e.Args);
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+
+        bool isBuilderLive = builderRef.IsAlive;
     }
 
 
     public void Handle(LogLevel logLevel, string message, Exception? exception = null)
     {
-        host?.ApplicationScope?.Messenger.Send(new PromptMessage(logLevel.ToString(), message));
+        host?.GlobalApplicationScope?.Messenger.Send(new PromptMessage(logLevel.ToString(), message));
         //  host.Logger!.Log(logLevel, exception, message);
         //MessageBox.Show(message);
     }

@@ -6,16 +6,12 @@ using System.Threading.Tasks;
 
 namespace WPFMvvM.Framework;
 
-public interface IWPFAppHost : IDisposable
+public interface IWPFAppHost
 {
     Application HostedApplication { get; }
-}
-
-public interface IWPFAppHost<TApp> : IWPFAppHost where TApp : Application
-{
     AppInfo AppInfo { get; }
-    ILogger<WPFAppHost<TApp>> Logger { get; }
-    IAppScope ApplicationScope { get; }
+    ILogger<WPFAppHost> Logger { get; }
+    IAppScope GlobalApplicationScope { get; }
     IServiceProvider Services { get; }
     Task StartAsync(string[]? args = null, CancellationToken token = default);
 }

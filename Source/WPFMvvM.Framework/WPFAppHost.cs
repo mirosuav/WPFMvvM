@@ -9,7 +9,7 @@ using WPFMvvM.Framework.Handlers;
 
 namespace WPFMvvM.Framework;
 
-public sealed class WPFAppHost<TApp> : IWPFAppHost<TApp> where TApp : Application
+public sealed class WPFAppHost : IWPFAppHost
 {
     private readonly IHost _genericHost;
     private readonly ApplicationCulture _initialCulture;
@@ -21,15 +21,15 @@ public sealed class WPFAppHost<TApp> : IWPFAppHost<TApp> where TApp : Applicatio
     //TODO we can remove it when using StrongReferenceMessenger
     private List<IGlobalMessageHandler>? globalMessageHandlers;
 
-    public TApp HostedApp { get; }
+    public Application HostedApp { get; }
     public Application HostedApplication => HostedApp;
     public IServiceProvider Services { get; }
-    public IAppScope ApplicationScope { get; }
-    public ILogger<WPFAppHost<TApp>> Logger { get; }
+    public IAppScope? GlobalApplicationScope { get; private set; }
+    public ILogger<WPFAppHost> Logger { get; }
 
     public AppInfo AppInfo { get; }
 
-    internal WPFAppHost(TApp hostedApp,
+    internal WPFAppHost(Application hostedApp,
         IHost genericHost,
         AppStartupDelegate? onAppStartup,
         Type? mainWindowModelType,
@@ -41,30 +41,23 @@ public sealed class WPFAppHost<TApp> : IWPFAppHost<TApp> where TApp : Applicatio
         HostedApp = hostedApp;
         Services = _genericHost.Services;
         AppInfo = Services.GetRequiredService<AppInfo>();
-        Logger = Services.GetRequiredService<ILogger<WPFAppHost<TApp>>>();
-        ApplicationScope = Services.GetRequiredService<IAppScope>();
+        Logger = Services.GetRequiredService<ILogger<WPFAppHost>>();
         _appExceptionHandler = AppExceptionHandler.Create(HostedApp, Logger, Services.GetService<IExceptionHandler>());
         _onAppStartup = onAppStartup;
         _mainWindowModelType = mainWindowModelType;
         _initialCulture = initialCulture ?? ApplicationCulture.Current;
     }
 
-    public static WPFAppHostBuilder<TApp> CreateBuilder<TMainViewModel>(TApp hostedApp)
-        where TMainViewModel : BaseWindowModel
-    {
-        return WPFAppHostBuilder<TApp>
-            .CreateWithMainViewModel<TMainViewModel>(hostedApp);
-    }
+    public static WPFAppHostBuilder CreateBuilder(Application hostedApp)
+        => WPFAppHostBuilder.Create(hostedApp);
 
 
     public Task StartAsync(string[]? args = null, CancellationToken token = default)
     {
-        ValidateMainWindowType();
         ConfigureCommonAspects(_genericHost);
         SetupHostedAppBehaviour();
         return Start(args, token);
     }
-
 
     void ConfigureCommonAspects(IHost host)
     {
@@ -73,8 +66,7 @@ public sealed class WPFAppHost<TApp> : IWPFAppHost<TApp> where TApp : Applicatio
         //configuraion.SetBasePath(AppInfo.AppDirectory!);
         //context.HostingEnvironment.ContentRootPath = AppInfo.AppDirectory!;
     }
-
-
+    
     void SetupHostedAppBehaviour()
     {
         //close application on explicit request
@@ -99,6 +91,8 @@ public sealed class WPFAppHost<TApp> : IWPFAppHost<TApp> where TApp : Applicatio
             //start host
             await _genericHost.StartAsync();
 
+            GlobalApplicationScope = Services.GetRequiredService<IAppScope>();
+
             Logger.LogInformation("Application started [env. {Environment}, ver. {ProductVersion}]", AppInfo.EnvironmentName, AppInfo.VersionInfo!.ProductVersion);
             Logger.LogInformation("Culture detected: {Culture}", Thread.CurrentThread.CurrentCulture.Name);
 
@@ -106,7 +100,7 @@ public sealed class WPFAppHost<TApp> : IWPFAppHost<TApp> where TApp : Applicatio
 
             if (_onAppStartup is not null)
             {
-                await _onAppStartup.Invoke(ApplicationScope, startupCancellation, args);
+                await _onAppStartup.Invoke(GlobalApplicationScope, startupCancellation, args);
                 startupCancellation.Token.ThrowIfCancellationRequested();
             }
 
@@ -133,7 +127,7 @@ public sealed class WPFAppHost<TApp> : IWPFAppHost<TApp> where TApp : Applicatio
 
     async Task CreateAndShowMainWindow(CancellationToken token)
     {
-        if (_mainWindowModelType is not null)
+        if (_mainWindowModelType is null)
             return;
 
         var mainWindowModel = Services.GetRequiredService(_mainWindowModelType!) as BaseWindowModel;
@@ -145,13 +139,6 @@ public sealed class WPFAppHost<TApp> : IWPFAppHost<TApp> where TApp : Applicatio
         var windowService = Services.GetRequiredService<IDialogService>();
         windowService.Show(mainWindowModel);
     }
-
-    public void ValidateMainWindowType()
-    {
-        if (_mainWindowModelType is not null && !_mainWindowModelType.IsAssignableTo(typeof(BaseWindowModel)))
-            throw new InvalidOperationException("Invalid main window type!");
-    }
-
 
     void MainWindowModel_OnClose(object? sender, EventArgs e)
     {
