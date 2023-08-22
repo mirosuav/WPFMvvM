@@ -18,6 +18,7 @@ public partial class AboutViewModel : CarDealerBaseWindowModel
     protected override ValueTask InitializeInternal(CancellationToken cancelltoken, params object[] parameters)
     {
         Title = "About!";
+
         return base.InitializeInternal(cancelltoken, parameters);
     }
 }

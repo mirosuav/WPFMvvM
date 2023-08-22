@@ -9,6 +9,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Globalization;
 using WPFMvvM.Framework.Exceptions;
+using WPFMvvM.Framework.Extensions;
+using WPFMvvM.Framework.ViewModel;
 
 [assembly: ThemeInfo(
     ResourceDictionaryLocation.SourceAssembly, //where theme specific resource dictionaries are located
@@ -24,16 +26,11 @@ namespace CarDealer;
 public partial class App : Application, IExceptionHandler
 {
     private readonly IWPFAppHost host;
-    WeakReference builderRef;
 
     public App()
     {
-        var builder = WPFAppHost
-                    .CreateBuilder(this);
-
-        builderRef = new WeakReference(builder);
-
-        host = builder
+         host = WPFAppHost
+                    .CreateBuilder(this)
                     .UseMainWindowModel(typeof(MainWindowModel))
                     .ConfigureGlobalExceptionHanlder(_ => this)
                     .ConfigureServices(ConfigureServices)
@@ -48,11 +45,6 @@ public partial class App : Application, IExceptionHandler
     {
         base.OnStartup(e);
         await host.StartAsync(e.Args);
-        GC.Collect();
-        GC.WaitForPendingFinalizers();
-        GC.Collect();
-
-        bool isBuilderLive = builderRef.IsAlive;
     }
 
 
@@ -98,6 +90,9 @@ public partial class App : Application, IExceptionHandler
                 db.EnableNullChecks();
             });
         });
+
+        //register all ViewModels
+        services.AddAllDerivedTypesInAssembly<BaseViewModel>(GetType().Assembly);
     }
 
 

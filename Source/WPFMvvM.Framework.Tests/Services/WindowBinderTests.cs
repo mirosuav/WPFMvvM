@@ -14,7 +14,7 @@ namespace WPFMvvM.Framework.Tests.Services;
 public class WindowBinderTests
 {
     private readonly IMessenger messenger;
-    private readonly IGlobalExceptionHandler exceptionHandler;
+    private readonly IExceptionHandler exceptionHandler;
     private readonly WindowBinder target;
     private readonly IAppScope appScope;
     private int errorsHandled;
@@ -22,7 +22,7 @@ public class WindowBinderTests
     public WindowBinderTests()
     {
         messenger = new StrongReferenceMessenger();
-        exceptionHandler = Substitute.For<IGlobalExceptionHandler>();
+        exceptionHandler = Substitute.For<IExceptionHandler>();
         exceptionHandler
             .When(h => h.Handle(Arg.Is(LogLevel.Error), Arg.Any<string>(), Arg.Any<Exception?>()))
             .Do(x => errorsHandled++);

@@ -13,6 +13,7 @@ public sealed class WPFAppHost : IWPFAppHost
 {
     private readonly IHost _genericHost;
     private readonly ApplicationCulture _initialCulture;
+    private readonly Application _hostedApp;
     private Type? _mainWindowModelType;
     private AppStartupDelegate? _onAppStartup;
     private AppExceptionHandler _appExceptionHandler;
@@ -21,15 +22,13 @@ public sealed class WPFAppHost : IWPFAppHost
     //TODO we can remove it when using StrongReferenceMessenger
     private List<IGlobalMessageHandler>? globalMessageHandlers;
 
-    public Application HostedApp { get; }
-    public Application HostedApplication => HostedApp;
     public IServiceProvider Services { get; }
     public IAppScope? GlobalApplicationScope { get; private set; }
     public ILogger<WPFAppHost> Logger { get; }
 
     public AppInfo AppInfo { get; }
 
-    internal WPFAppHost(Application hostedApp,
+    internal WPFAppHost(
         IHost genericHost,
         AppStartupDelegate? onAppStartup,
         Type? mainWindowModelType,
@@ -38,18 +37,18 @@ public sealed class WPFAppHost : IWPFAppHost
         Guard.IsNotNull(genericHost);
 
         _genericHost = genericHost;
-        HostedApp = hostedApp;
+        _hostedApp = Application.Current;
         Services = _genericHost.Services;
         AppInfo = Services.GetRequiredService<AppInfo>();
         Logger = Services.GetRequiredService<ILogger<WPFAppHost>>();
-        _appExceptionHandler = AppExceptionHandler.Create(HostedApp, Logger, Services.GetService<IExceptionHandler>());
+        _appExceptionHandler = AppExceptionHandler.Create(_hostedApp, Logger, Services.GetService<IExceptionHandler>());
         _onAppStartup = onAppStartup;
         _mainWindowModelType = mainWindowModelType;
         _initialCulture = initialCulture ?? ApplicationCulture.Current;
     }
 
-    public static WPFAppHostBuilder CreateBuilder(Application hostedApp)
-        => WPFAppHostBuilder.Create(hostedApp);
+    public static WPFAppHostBuilder CreateBuilder()
+        => WPFAppHostBuilder.Create();
 
 
     public Task StartAsync(string[]? args = null, CancellationToken token = default)
@@ -70,8 +69,8 @@ public sealed class WPFAppHost : IWPFAppHost
     void SetupHostedAppBehaviour()
     {
         //close application on explicit request
-        HostedApp.ShutdownMode = ShutdownMode.OnExplicitShutdown;
-        HostedApp.Exit += HostedApp_Exit;
+        _hostedApp.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+        _hostedApp.Exit += HostedApp_Exit;
     }
 
     void RegisterGlobalMessageHandlers(IHost host)
@@ -84,7 +83,7 @@ public sealed class WPFAppHost : IWPFAppHost
     async Task Start(string[]? args = null, CancellationToken token = default)
     {
         var startupCancellation = CancellationTokenSource.CreateLinkedTokenSource(token);
-        startupCancellation.Token.Register(HostedApp.Shutdown);
+        startupCancellation.Token.Register(_hostedApp.Shutdown);
 
         try
         {
@@ -116,7 +115,7 @@ public sealed class WPFAppHost : IWPFAppHost
         catch (Exception ex)
         {
             _appExceptionHandler!.Handle(LogLevel.Critical, "Unexpected error occured", ex);
-            HostedApp!.Shutdown();
+            _hostedApp!.Shutdown();
             return;
         }
         finally
@@ -145,7 +144,7 @@ public sealed class WPFAppHost : IWPFAppHost
         if (sender is BaseWindowModel windowModel)
         {
             windowModel.OnClosed -= MainWindowModel_OnClose;
-            HostedApp?.Shutdown();
+            _hostedApp?.Shutdown();
         }
     }
 
@@ -161,9 +160,9 @@ public sealed class WPFAppHost : IWPFAppHost
 
     public void Dispose()
     {
-        if (HostedApp is not null)
+        if (_hostedApp is not null)
         {
-            HostedApp.Exit -= HostedApp_Exit;
+            _hostedApp.Exit -= HostedApp_Exit;
         }
         _appExceptionHandler?.Dispose();
         _genericHost?.Dispose();

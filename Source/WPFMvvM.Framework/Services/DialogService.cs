@@ -8,12 +8,10 @@ namespace WPFMvvM.Framework.Services;
 /// </summary>
 public class DialogService : IDialogService
 {
-    private readonly Window _mainAppWindow;
     private readonly IWindowBinder _windowBinder;
 
-    public DialogService(IWPFAppHost appHost, IWindowBinder windowBinder)
+    public DialogService(IWindowBinder windowBinder)
     {
-        _mainAppWindow = appHost.HostedApplication.MainWindow;
         _windowBinder = windowBinder;
     }
 
@@ -79,7 +77,7 @@ public class DialogService : IDialogService
     void EnsureWindowParent(Window window)
     {
         //the owner of all windows is main application widow
-        if (window != _mainAppWindow)
-            window.Owner = _mainAppWindow;
+        if (window != Application.Current.MainWindow)
+            window.Owner = Application.Current.MainWindow;
     }
 }

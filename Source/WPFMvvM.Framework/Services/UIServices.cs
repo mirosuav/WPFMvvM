@@ -20,6 +20,12 @@ public class UIServices : IUIServices
     /// </summary>
     private Dispatcher _dispatcher;
 
+    public UIServices() 
+        : this(Application.Current.Dispatcher)
+    {
+
+    }
+
     public UIServices(Dispatcher dispatcher)
     {
         _dispatcher = dispatcher;

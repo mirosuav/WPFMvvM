@@ -9,44 +9,48 @@ namespace WPFMvvM.Framework;
 
 public delegate ValueTask AppStartupDelegate(IAppScope mainAppScope, CancellationTokenSource cts, string[]? args);
 
-public class WPFAppHostBuilder : IDisposable
+public class WPFAppHostBuilder
 {
-    private readonly IHostBuilder generichostBuilder;
-    private readonly Application hostedApplication;
     private Func<IServiceProvider, IExceptionHandler>? exceptionHandlerDelegate;
+
+    private List<Action<HostBuilderContext, IServiceCollection>> configureServicesDelegates = new();
+    private List<Action<HostBuilderContext, ILoggingBuilder>> configureLoggingDelegates = new();
+    private List<Action<HostBuilderContext, IConfigurationBuilder>> configureAppConfigurationDelegates = new();
+
     private ApplicationCulture initialAppCulture;
     private AppStartupDelegate? onAppStartup;
     private Type? mainWindowModelType;
+    private bool _hostBuilt;
 
-    public static WPFAppHostBuilder Create(Application hostedApp, string[]? args = null)
+    public static WPFAppHostBuilder Create()
     {
-        return new WPFAppHostBuilder(hostedApp, args);
+        return new WPFAppHostBuilder();
     }
 
-    internal WPFAppHostBuilder(Application hostedApp, string[]? args = null)
+    private WPFAppHostBuilder()
     {
         initialAppCulture = ApplicationCulture.Current;
-        hostedApplication = hostedApp;
-        generichostBuilder = Host.CreateDefaultBuilder(args);
-        generichostBuilder.ConfigureServices(ConfigureServicesInternal);
     }
 
     public WPFAppHostBuilder ConfigureServices(Action<HostBuilderContext, IServiceCollection> configureServicesHosted)
     {
+        checkBuilt();
         ArgumentNullException.ThrowIfNull(configureServicesHosted);
-        generichostBuilder.ConfigureServices(configureServicesHosted);
+        configureServicesDelegates.Add(configureServicesHosted);
         return this;
     }
 
     public WPFAppHostBuilder ConfigureLogging(Action<HostBuilderContext, ILoggingBuilder> configureLoggingHosted)
     {
+        checkBuilt();
         ArgumentNullException.ThrowIfNull(configureLoggingHosted);
-        generichostBuilder.ConfigureLogging(configureLoggingHosted);
+        configureLoggingDelegates.Add(configureLoggingHosted);
         return this;
     }
 
     public WPFAppHostBuilder ConfigureGlobalExceptionHanlder(Func<IServiceProvider, IExceptionHandler> configureGlobalExceptionHanlder)
     {
+        checkBuilt();
         ArgumentNullException.ThrowIfNull(configureGlobalExceptionHanlder);
         exceptionHandlerDelegate = configureGlobalExceptionHanlder;
         return this;
@@ -54,13 +58,15 @@ public class WPFAppHostBuilder : IDisposable
 
     public WPFAppHostBuilder ConfigureAppConfiguration(Action<HostBuilderContext, IConfigurationBuilder> configureAppConfigurationHosted)
     {
+        checkBuilt();
         ArgumentNullException.ThrowIfNull(configureAppConfigurationHosted);
-        generichostBuilder.ConfigureAppConfiguration(configureAppConfigurationHosted);
+        configureAppConfigurationDelegates.Add(configureAppConfigurationHosted);
         return this;
     }
 
     public WPFAppHostBuilder UseAppCulture(CultureInfo culture, CultureInfo? uiCulture = null)
     {
+        checkBuilt();
         ArgumentNullException.ThrowIfNull(culture);
         initialAppCulture = new ApplicationCulture(culture, uiCulture ?? culture);
         return this;
@@ -68,6 +74,7 @@ public class WPFAppHostBuilder : IDisposable
 
     public WPFAppHostBuilder UseStartup(AppStartupDelegate onStartup)
     {
+        checkBuilt();
         ArgumentNullException.ThrowIfNull(onStartup);
         onAppStartup = onStartup;
         return this;
@@ -75,25 +82,27 @@ public class WPFAppHostBuilder : IDisposable
 
     public WPFAppHostBuilder UseMainWindowModel(Type mainApplicationWindowType)
     {
+        checkBuilt();
         if (mainApplicationWindowType is null || !mainApplicationWindowType.IsAssignableTo(typeof(BaseWindowModel)))
             throw new InvalidOperationException("Invalid or null main window type!");
         mainWindowModelType = mainApplicationWindowType;
         return this;
     }
-
-
-    void ConfigureServicesInternal(HostBuilderContext context, IServiceCollection services)
+    
+    static void ConfigureServicesInternal(IServiceCollection services,
+        Type? mainWindowModelType,
+        AppStartupDelegate? onAppStartup,
+        ApplicationCulture initialAppCulture,
+        Func<IServiceProvider, IExceptionHandler>? exceptionHandlerDelegate)
     {
         services.AddLogging();
 
-        services.AddSingleton<IUIServices>(new UIServices(hostedApplication.Dispatcher));
+        services.AddSingleton<IUIServices, UIServices>();
 
         if (exceptionHandlerDelegate is not null)
             services.AddSingleton(exceptionHandlerDelegate);
 
-        var appAssembly = hostedApplication.GetType().Assembly;
-
-        services.AddSingleton(s => AppInfo.Create(appAssembly, s.GetRequiredService<IHostEnvironment>().EnvironmentName));
+        services.AddSingleton(s => AppInfo.Create(Assembly.GetEntryAssembly()!, s.GetRequiredService<IHostEnvironment>().EnvironmentName));
 
         //messenger registered as scope
         services.AddSingleton<IMessenger, WeakReferenceMessenger>();
@@ -105,12 +114,9 @@ public class WPFAppHostBuilder : IDisposable
 
         services.AddSingletonWithSelf<IGlobalMessageHandler, ApplicationRequestHanlder>();
 
-        RegisterAllViewModelTypes(services, appAssembly);
-
         services.AddSingleton<IWPFAppHost>(s =>
         {
             return new WPFAppHost(
-                            hostedApplication,
                             s.GetRequiredService<IHost>(),
                             onAppStartup,
                             mainWindowModelType,
@@ -119,33 +125,45 @@ public class WPFAppHostBuilder : IDisposable
 
     }
 
-    static void RegisterAllViewModelTypes(IServiceCollection services, Assembly appAssembly)
+    public IWPFAppHost Build(string[]? args = null)
     {
-        var vmType = typeof(BaseViewModel);
-        //Register all views and viewmodels
-        foreach (var type in appAssembly.GetTypes())
+        checkBuilt();
+        _hostBuilt = true;
+        try
         {
-            if (type.IsGenericType || type.IsAbstract || type.IsInterface) continue;
+            var hostBuilder = Host.CreateDefaultBuilder(args);
+            
+            hostBuilder.ConfigureServices(services
+                => ConfigureServicesInternal(services, mainWindowModelType, onAppStartup, initialAppCulture, exceptionHandlerDelegate));
 
-            //register ViewModels and Views
-            if (vmType.IsAssignableFrom(type))
-            {
-                Debug.WriteLine($"Registering: {type.Name}");
-                services.AddTransient(type);
-            }
+            foreach (var servDelegate in configureServicesDelegates)
+                hostBuilder.ConfigureServices(servDelegate);
+
+            foreach (var servDelegate in configureLoggingDelegates)
+                hostBuilder.ConfigureLogging(servDelegate);
+
+            foreach (var servDelegate in configureAppConfigurationDelegates)
+                hostBuilder.ConfigureAppConfiguration(servDelegate);
+
+            return hostBuilder.Build().Services.GetRequiredService<IWPFAppHost>();
+        }
+        finally
+        {
+            configureServicesDelegates = new();
+            configureLoggingDelegates = new();
+            configureAppConfigurationDelegates = new();
+            mainWindowModelType = null;
+            onAppStartup = null;
+            initialAppCulture = ApplicationCulture.Invariant;
+            exceptionHandlerDelegate = null;
         }
     }
 
-
-    public IWPFAppHost Build(string[]? args = null)
+    private void checkBuilt()
     {
-        var genericHost = generichostBuilder.Build();
-        return genericHost.Services.GetRequiredService<IWPFAppHost>();
+        if (_hostBuilt)
+        {
+            throw new InvalidOperationException("The host has been already built. Recreate the builder.");
+        }
     }
-
-    public void Dispose()
-    {
-        Debug.WriteLine($"{nameof(WPFAppHostBuilder)} instance has been disposed.");
-    }
-
 }
