@@ -88,7 +88,7 @@ public class WPFAppHostBuilder
         mainWindowModelType = mainApplicationWindowType;
         return this;
     }
-    
+
     static void ConfigureServicesInternal(IServiceCollection services,
         Type? mainWindowModelType,
         AppStartupDelegate? onAppStartup,
@@ -117,7 +117,7 @@ public class WPFAppHostBuilder
         services.AddSingleton<IWPFAppHost>(s =>
         {
             return new WPFAppHost(
-                            s.GetRequiredService<IHost>(),
+                            s.GetRequiredService<IHost>(), //this keps the builder alive
                             onAppStartup,
                             mainWindowModelType,
                             initialAppCulture);
@@ -132,9 +132,10 @@ public class WPFAppHostBuilder
         try
         {
             var hostBuilder = Host.CreateDefaultBuilder(args);
-            
+
             hostBuilder.ConfigureServices(services
-                => ConfigureServicesInternal(services, mainWindowModelType, onAppStartup, initialAppCulture, exceptionHandlerDelegate));
+                => ConfigureServicesInternal(services, mainWindowModelType, onAppStartup, 
+                initialAppCulture, exceptionHandlerDelegate));
 
             foreach (var servDelegate in configureServicesDelegates)
                 hostBuilder.ConfigureServices(servDelegate);

@@ -43,7 +43,7 @@ public static class ServiceCollectionExtensions
             //register ViewModels and Views
             if (vmType.IsAssignableFrom(type))
             {
-                services.Add(new ServiceDescriptor(vmType, vmType, lifeTime));
+                services.Add(new ServiceDescriptor(type, type, lifeTime));
             }
         }
     }

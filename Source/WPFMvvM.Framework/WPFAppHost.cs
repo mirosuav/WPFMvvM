@@ -53,19 +53,19 @@ public sealed class WPFAppHost : IWPFAppHost
 
     public Task StartAsync(string[]? args = null, CancellationToken token = default)
     {
-        ConfigureCommonAspects(_genericHost);
+        ConfigureCommonAspects();
         SetupHostedAppBehaviour();
         return Start(args, token);
     }
 
-    void ConfigureCommonAspects(IHost host)
+    void ConfigureCommonAspects()
     {
-        RegisterGlobalMessageHandlers(host);
+        RegisterGlobalMessageHandlers();
         CultureExtensions.ConfigureAppCulture(_initialCulture);
         //configuraion.SetBasePath(AppInfo.AppDirectory!);
         //context.HostingEnvironment.ContentRootPath = AppInfo.AppDirectory!;
     }
-    
+
     void SetupHostedAppBehaviour()
     {
         //close application on explicit request
@@ -73,7 +73,7 @@ public sealed class WPFAppHost : IWPFAppHost
         _hostedApp.Exit += HostedApp_Exit;
     }
 
-    void RegisterGlobalMessageHandlers(IHost host)
+    void RegisterGlobalMessageHandlers()
     {
         var messenger = Services.GetRequiredService<IMessenger>();
         globalMessageHandlers = Services.GetServices<IGlobalMessageHandler>().ToList();

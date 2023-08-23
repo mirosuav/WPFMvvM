@@ -30,7 +30,7 @@ public partial class App : Application, IExceptionHandler
     public App()
     {
          host = WPFAppHost
-                    .CreateBuilder(this)
+                    .CreateBuilder()
                     .UseMainWindowModel(typeof(MainWindowModel))
                     .ConfigureGlobalExceptionHanlder(_ => this)
                     .ConfigureServices(ConfigureServices)
