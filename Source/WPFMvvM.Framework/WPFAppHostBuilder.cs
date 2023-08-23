@@ -11,32 +11,28 @@ public delegate ValueTask AppStartupDelegate(IAppScope mainAppScope, Cancellatio
 
 public class WPFAppHostBuilder
 {
-    private Func<IServiceProvider, IExceptionHandler>? exceptionHandlerDelegate;
-
-    private List<Action<HostBuilderContext, IServiceCollection>> configureServicesDelegates = new();
-    private List<Action<HostBuilderContext, ILoggingBuilder>> configureLoggingDelegates = new();
-    private List<Action<HostBuilderContext, IConfigurationBuilder>> configureAppConfigurationDelegates = new();
-
+    private IHostBuilder hostBuilder;
     private ApplicationCulture initialAppCulture;
     private AppStartupDelegate? onAppStartup;
     private Type? mainWindowModelType;
     private bool _hostBuilt;
-
-    public static WPFAppHostBuilder Create()
+    public static WPFAppHostBuilder Create(string[]? args = null)
     {
-        return new WPFAppHostBuilder();
+        return new WPFAppHostBuilder(args);
     }
 
-    private WPFAppHostBuilder()
+    private WPFAppHostBuilder(string[]? args = null)
     {
+        hostBuilder = Host.CreateDefaultBuilder(args);
         initialAppCulture = ApplicationCulture.Current;
+        hostBuilder.ConfigureServices(ConfigureServicesInternal);
     }
 
     public WPFAppHostBuilder ConfigureServices(Action<HostBuilderContext, IServiceCollection> configureServicesHosted)
     {
         checkBuilt();
         ArgumentNullException.ThrowIfNull(configureServicesHosted);
-        configureServicesDelegates.Add(configureServicesHosted);
+        hostBuilder.ConfigureServices(configureServicesHosted);
         return this;
     }
 
@@ -44,15 +40,7 @@ public class WPFAppHostBuilder
     {
         checkBuilt();
         ArgumentNullException.ThrowIfNull(configureLoggingHosted);
-        configureLoggingDelegates.Add(configureLoggingHosted);
-        return this;
-    }
-
-    public WPFAppHostBuilder ConfigureGlobalExceptionHanlder(Func<IServiceProvider, IExceptionHandler> configureGlobalExceptionHanlder)
-    {
-        checkBuilt();
-        ArgumentNullException.ThrowIfNull(configureGlobalExceptionHanlder);
-        exceptionHandlerDelegate = configureGlobalExceptionHanlder;
+        hostBuilder.ConfigureLogging(configureLoggingHosted);
         return this;
     }
 
@@ -60,7 +48,15 @@ public class WPFAppHostBuilder
     {
         checkBuilt();
         ArgumentNullException.ThrowIfNull(configureAppConfigurationHosted);
-        configureAppConfigurationDelegates.Add(configureAppConfigurationHosted);
+        hostBuilder.ConfigureAppConfiguration(configureAppConfigurationHosted);
+        return this;
+    }
+
+    public WPFAppHostBuilder AddGlobalExceptionHanlder(IExceptionHandler globalExceptionHanlder)
+    {
+        checkBuilt();
+        ArgumentNullException.ThrowIfNull(globalExceptionHanlder);
+        hostBuilder.ConfigureServices(s => s.AddSingleton(globalExceptionHanlder));
         return this;
     }
 
@@ -89,19 +85,10 @@ public class WPFAppHostBuilder
         return this;
     }
 
-    static void ConfigureServicesInternal(IServiceCollection services,
-        Type? mainWindowModelType,
-        AppStartupDelegate? onAppStartup,
-        ApplicationCulture initialAppCulture,
-        Func<IServiceProvider, IExceptionHandler>? exceptionHandlerDelegate)
+    void ConfigureServicesInternal(IServiceCollection services)
     {
         services.AddLogging();
-
         services.AddSingleton<IUIServices, UIServices>();
-
-        if (exceptionHandlerDelegate is not null)
-            services.AddSingleton(exceptionHandlerDelegate);
-
         services.AddSingleton(s => AppInfo.Create(Assembly.GetEntryAssembly()!, s.GetRequiredService<IHostEnvironment>().EnvironmentName));
 
         //messenger registered as scope
@@ -131,32 +118,13 @@ public class WPFAppHostBuilder
         _hostBuilt = true;
         try
         {
-            var hostBuilder = Host.CreateDefaultBuilder(args);
-
-            hostBuilder.ConfigureServices(services
-                => ConfigureServicesInternal(services, mainWindowModelType, onAppStartup, 
-                initialAppCulture, exceptionHandlerDelegate));
-
-            foreach (var servDelegate in configureServicesDelegates)
-                hostBuilder.ConfigureServices(servDelegate);
-
-            foreach (var servDelegate in configureLoggingDelegates)
-                hostBuilder.ConfigureLogging(servDelegate);
-
-            foreach (var servDelegate in configureAppConfigurationDelegates)
-                hostBuilder.ConfigureAppConfiguration(servDelegate);
-
             return hostBuilder.Build().Services.GetRequiredService<IWPFAppHost>();
         }
         finally
         {
-            configureServicesDelegates = new();
-            configureLoggingDelegates = new();
-            configureAppConfigurationDelegates = new();
             mainWindowModelType = null;
             onAppStartup = null;
             initialAppCulture = ApplicationCulture.Invariant;
-            exceptionHandlerDelegate = null;
         }
     }
 
