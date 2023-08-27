@@ -11,7 +11,7 @@ public delegate ValueTask AppStartupDelegate(IAppScope mainAppScope, Cancellatio
 
 public class WPFAppHostBuilder
 {
-    private IHostBuilder hostBuilder;
+    private HostApplicationBuilder hostBuilder;
     private ApplicationCulture initialAppCulture;
     private AppStartupDelegate? onAppStartup;
     private Type? mainWindowModelType;
@@ -23,32 +23,32 @@ public class WPFAppHostBuilder
 
     private WPFAppHostBuilder(string[]? args = null)
     {
-        hostBuilder = Host.CreateDefaultBuilder(args);
+        hostBuilder = Host.CreateApplicationBuilder(args);
         initialAppCulture = ApplicationCulture.Current;
-        hostBuilder.ConfigureServices(ConfigureServicesInternal);
+        ConfigureServicesInternal(hostBuilder.Services);
     }
 
-    public WPFAppHostBuilder ConfigureServices(Action<HostBuilderContext, IServiceCollection> configureServicesHosted)
+    public WPFAppHostBuilder ConfigureServices(Action<IConfiguration, IServiceCollection> configureServicesHosted)
     {
         checkBuilt();
         ArgumentNullException.ThrowIfNull(configureServicesHosted);
-        hostBuilder.ConfigureServices(configureServicesHosted);
+        configureServicesHosted(hostBuilder.Configuration, hostBuilder.Services);
         return this;
     }
 
-    public WPFAppHostBuilder ConfigureLogging(Action<HostBuilderContext, ILoggingBuilder> configureLoggingHosted)
+    public WPFAppHostBuilder ConfigureLogging(Action<ILoggingBuilder> configureLoggingHosted)
     {
         checkBuilt();
         ArgumentNullException.ThrowIfNull(configureLoggingHosted);
-        hostBuilder.ConfigureLogging(configureLoggingHosted);
+        configureLoggingHosted(hostBuilder.Logging);
         return this;
     }
 
-    public WPFAppHostBuilder ConfigureAppConfiguration(Action<HostBuilderContext, IConfigurationBuilder> configureAppConfigurationHosted)
+    public WPFAppHostBuilder ConfigureAppConfiguration(Action<IConfiguration> configureAppConfigurationHosted)
     {
         checkBuilt();
         ArgumentNullException.ThrowIfNull(configureAppConfigurationHosted);
-        hostBuilder.ConfigureAppConfiguration(configureAppConfigurationHosted);
+        configureAppConfigurationHosted(hostBuilder.Configuration);
         return this;
     }
 
@@ -56,7 +56,7 @@ public class WPFAppHostBuilder
     {
         checkBuilt();
         ArgumentNullException.ThrowIfNull(globalExceptionHanlder);
-        hostBuilder.ConfigureServices(s => s.AddSingleton(globalExceptionHanlder));
+        hostBuilder.Services.AddSingleton(globalExceptionHanlder);
         return this;
     }
 

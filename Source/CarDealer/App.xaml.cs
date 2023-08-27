@@ -29,16 +29,16 @@ public partial class App : Application, IExceptionHandler
 
     public App()
     {
-         host = WPFAppHost
-                    .CreateBuilder()
-                    .UseMainWindowModel(typeof(MainWindowModel))
-                    .ConfigureGlobalExceptionHanlder(_ => this)
-                    .ConfigureServices(ConfigureServices)
-                    .ConfigureLogging(ConfigureLogging)
-                    .ConfigureAppConfiguration(ConfigureAppConfiguration)
-                    .UseAppCulture(CultureInfo.GetCultureInfo("en-US"))
-                    .UseStartup(OnStartup)
-                    .Build();
+        host = WPFAppHost
+                   .CreateBuilder()
+                   .UseMainWindowModel(typeof(MainWindowModel))
+                   .AddGlobalExceptionHanlder(this)
+                   .ConfigureServices(ConfigureServices)
+                   .ConfigureLogging(ConfigureLogging)
+                   .ConfigureAppConfiguration(ConfigureAppConfiguration)
+                   .UseAppCulture(CultureInfo.GetCultureInfo("en-US"))
+                   .UseStartup(OnStartup)
+                   .Build();
     }
 
     protected override async void OnStartup(StartupEventArgs e)
@@ -56,7 +56,7 @@ public partial class App : Application, IExceptionHandler
     }
 
 
-     async ValueTask OnStartup(IAppScope mainAppScope, CancellationTokenSource cts, string[]? args)
+    async ValueTask OnStartup(IAppScope mainAppScope, CancellationTokenSource cts, string[]? args)
     {
         //  host.Logger!.LogInformation("Application Startup passed");
         if (mainAppScope is CarDealerAppScope scope)
@@ -64,24 +64,24 @@ public partial class App : Application, IExceptionHandler
     }
 
 
-     void ConfigureAppConfiguration(HostBuilderContext context, IConfigurationBuilder configuration)
+    void ConfigureAppConfiguration(IConfiguration configuration)
     {
         //  host.Logger!.LogInformation("ConfigureAppConfiguration passed");
     }
 
-     void ConfigureLogging(HostBuilderContext context, ILoggingBuilder services)
+    void ConfigureLogging(ILoggingBuilder services)
     {
         //  host.Logger!.LogInformation("ConfigureLogging passed");
     }
 
 
 
-     void ConfigureServices(HostBuilderContext context, IServiceCollection services)
+    void ConfigureServices(IConfiguration configuration, IServiceCollection services)
     {
         // host.Logger!.LogInformation("ConfigureServices passed");
         services.AddScoped<IAppScope, CarDealerAppScope>();
         services.AddScoped<CarDealerAppScope>();
-        services.Configure<GeneralSettings>(context.Configuration.GetSection(nameof(GeneralSettings)));
+        services.Configure<GeneralSettings>(configuration.GetSection(nameof(GeneralSettings)));
 
         services.AddDbContext<AppDbContext>(x =>
         {

@@ -46,9 +46,9 @@ public class WPFAppHostBuilderTests
         var exHandler = new ExHandler();
         var app = new Application();
 
-        Action<HostBuilderContext, IServiceCollection> ConfigureServices = (c, s) => { };
-        Action<HostBuilderContext, ILoggingBuilder> ConfigureLogging = (c, s) => { };
-        Action<HostBuilderContext, IConfigurationBuilder> ConfigureAppConfiguration = (c, s) => { };
+        Action<IConfiguration, IServiceCollection> ConfigureServices = (c, s) => { };
+        Action< ILoggingBuilder> ConfigureLogging = (l) => { };
+        Action< IConfiguration> ConfigureAppConfiguration = (c) => { };
         AppStartupDelegate OnStartup = (s, t, args) => ValueTask.CompletedTask;
 
         Func<Application, (WeakReference, object)> ACT = (Application app) =>
