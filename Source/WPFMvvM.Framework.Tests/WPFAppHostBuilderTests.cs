@@ -59,7 +59,7 @@ public class WPFAppHostBuilderTests
             //ACT
             var host = builder
                 .UseMainWindowModel(typeof(MainVM))
-                .AddGlobalExceptionHanlder(exHandler)
+                .UseGlobalExceptionHanlder(exHandler)
                 .ConfigureServices(ConfigureServices)
                 .ConfigureLogging(ConfigureLogging)
                 .ConfigureAppConfiguration(ConfigureAppConfiguration)

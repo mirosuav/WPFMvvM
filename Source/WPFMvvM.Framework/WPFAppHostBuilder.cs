@@ -6,16 +6,16 @@ using WPFMvvM.Framework.Exceptions;
 using WPFMvvM.Framework.Handlers;
 
 namespace WPFMvvM.Framework;
-
-public delegate ValueTask AppStartupDelegate(IAppScope mainAppScope, CancellationTokenSource cts, string[]? args);
-
 public class WPFAppHostBuilder
 {
     private HostApplicationBuilder hostBuilder;
-    private ApplicationCulture initialAppCulture;
-    private AppStartupDelegate? onAppStartup;
-    private Type? mainWindowModelType;
     private bool _hostBuilt;
+
+    public IServiceCollection Services => hostBuilder.Services;
+    public IConfiguration Configuration => hostBuilder.Configuration;
+    public ILoggingBuilder Logging => hostBuilder.Logging;
+    public IHostEnvironment Environment => hostBuilder.Environment;
+
     public static WPFAppHostBuilder Create(string[]? args = null)
     {
         return new WPFAppHostBuilder(args);
@@ -24,35 +24,11 @@ public class WPFAppHostBuilder
     private WPFAppHostBuilder(string[]? args = null)
     {
         hostBuilder = Host.CreateApplicationBuilder(args);
-        initialAppCulture = ApplicationCulture.Current;
         ConfigureServicesInternal(hostBuilder.Services);
     }
 
-    public WPFAppHostBuilder ConfigureServices(Action<IConfiguration, IServiceCollection> configureServicesHosted)
-    {
-        checkBuilt();
-        ArgumentNullException.ThrowIfNull(configureServicesHosted);
-        configureServicesHosted(hostBuilder.Configuration, hostBuilder.Services);
-        return this;
-    }
 
-    public WPFAppHostBuilder ConfigureLogging(Action<ILoggingBuilder> configureLoggingHosted)
-    {
-        checkBuilt();
-        ArgumentNullException.ThrowIfNull(configureLoggingHosted);
-        configureLoggingHosted(hostBuilder.Logging);
-        return this;
-    }
-
-    public WPFAppHostBuilder ConfigureAppConfiguration(Action<IConfiguration> configureAppConfigurationHosted)
-    {
-        checkBuilt();
-        ArgumentNullException.ThrowIfNull(configureAppConfigurationHosted);
-        configureAppConfigurationHosted(hostBuilder.Configuration);
-        return this;
-    }
-
-    public WPFAppHostBuilder AddGlobalExceptionHanlder(IExceptionHandler globalExceptionHanlder)
+    public WPFAppHostBuilder UseGlobalExceptionHanlder(IExceptionHandler globalExceptionHanlder)
     {
         checkBuilt();
         ArgumentNullException.ThrowIfNull(globalExceptionHanlder);
@@ -60,32 +36,23 @@ public class WPFAppHostBuilder
         return this;
     }
 
-    public WPFAppHostBuilder UseAppCulture(CultureInfo culture, CultureInfo? uiCulture = null)
+    public WPFAppHostBuilder UseAppCulture(ApplicationCulture appCulture)
     {
         checkBuilt();
-        ArgumentNullException.ThrowIfNull(culture);
-        initialAppCulture = new ApplicationCulture(culture, uiCulture ?? culture);
+        ArgumentNullException.ThrowIfNull(appCulture);
+        CultureExtensions.ConfigureAppCulture(appCulture);
         return this;
     }
 
-    public WPFAppHostBuilder UseStartup(AppStartupDelegate onStartup)
+    public WPFAppHostBuilder AddViewModelsInAssembly(Assembly assembly)
     {
         checkBuilt();
-        ArgumentNullException.ThrowIfNull(onStartup);
-        onAppStartup = onStartup;
+        ArgumentNullException.ThrowIfNull(assembly);
+        Services.AddAllDerivedTypesInAssembly<BaseViewModel>(assembly);
         return this;
     }
 
-    public WPFAppHostBuilder UseMainWindowModel(Type mainApplicationWindowType)
-    {
-        checkBuilt();
-        if (mainApplicationWindowType is null || !mainApplicationWindowType.IsAssignableTo(typeof(BaseWindowModel)))
-            throw new InvalidOperationException("Invalid or null main window type!");
-        mainWindowModelType = mainApplicationWindowType;
-        return this;
-    }
-
-    void ConfigureServicesInternal(IServiceCollection services)
+    static void ConfigureServicesInternal(IServiceCollection services)
     {
         services.AddLogging();
         services.AddSingleton<IUIServices, UIServices>();
@@ -101,14 +68,7 @@ public class WPFAppHostBuilder
 
         services.AddSingletonWithSelf<IGlobalMessageHandler, ApplicationRequestHanlder>();
 
-        services.AddSingleton<IWPFAppHost>(s =>
-        {
-            return new WPFAppHost(
-                            s.GetRequiredService<IHost>(), //this keps the builder alive
-                            onAppStartup,
-                            mainWindowModelType,
-                            initialAppCulture);
-        });
+        services.AddSingleton<IWPFAppHost, WPFAppHost>();
 
     }
 
@@ -116,16 +76,7 @@ public class WPFAppHostBuilder
     {
         checkBuilt();
         _hostBuilt = true;
-        try
-        {
-            return hostBuilder.Build().Services.GetRequiredService<IWPFAppHost>();
-        }
-        finally
-        {
-            mainWindowModelType = null;
-            onAppStartup = null;
-            initialAppCulture = ApplicationCulture.Invariant;
-        }
+        return hostBuilder.Build().Services.GetRequiredService<IWPFAppHost>();
     }
 
     private void checkBuilt()

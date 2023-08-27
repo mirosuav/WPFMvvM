@@ -12,27 +12,22 @@ namespace WPFMvvM.Framework;
 public sealed class WPFAppHost : IWPFAppHost
 {
     private readonly IHost _genericHost;
-    private readonly ApplicationCulture _initialCulture;
     private readonly Application _hostedApp;
-    private Type? _mainWindowModelType;
-    private AppStartupDelegate? _onAppStartup;
-    private AppExceptionHandler _appExceptionHandler;
+    private readonly AppExceptionHandler _globalAppExceptionHandler;
 
     //keep global recipient references so their're not garbage collected when using WeakReferenceMessenger 
     //TODO we can remove it when using StrongReferenceMessenger
     private List<IGlobalMessageHandler>? globalMessageHandlers;
 
+    public IExceptionHandler ExceptionHandler => _globalAppExceptionHandler;
     public IServiceProvider Services { get; }
     public IAppScope? GlobalApplicationScope { get; private set; }
     public ILogger<WPFAppHost> Logger { get; }
-
     public AppInfo AppInfo { get; }
+    public CancellationTokenSource StartupCancellation { get; } = new();
+    public CancellationToken StartupToken => StartupCancellation.Token;
 
-    internal WPFAppHost(
-        IHost genericHost,
-        AppStartupDelegate? onAppStartup,
-        Type? mainWindowModelType,
-        ApplicationCulture? initialCulture)
+    public WPFAppHost(IHost genericHost)
     {
         Guard.IsNotNull(genericHost);
 
@@ -41,29 +36,25 @@ public sealed class WPFAppHost : IWPFAppHost
         Services = _genericHost.Services;
         AppInfo = Services.GetRequiredService<AppInfo>();
         Logger = Services.GetRequiredService<ILogger<WPFAppHost>>();
-        _appExceptionHandler = AppExceptionHandler.Create(_hostedApp, Logger, Services.GetService<IExceptionHandler>());
-        _onAppStartup = onAppStartup;
-        _mainWindowModelType = mainWindowModelType;
-        _initialCulture = initialCulture ?? ApplicationCulture.Current;
+        _globalAppExceptionHandler = AppExceptionHandler.Create(_hostedApp, Logger, Services.GetService<IExceptionHandler>());
     }
 
     public static WPFAppHostBuilder CreateBuilder()
         => WPFAppHostBuilder.Create();
 
 
-    public Task StartAsync(string[]? args = null, CancellationToken token = default)
+    public async Task StartAsync(string[]? args = null)
     {
-        ConfigureCommonAspects();
-        SetupHostedAppBehaviour();
-        return Start(args, token);
-    }
+        //StartupCancellation.Token.Register(_hostedApp.Shutdown);
 
-    void ConfigureCommonAspects()
-    {
         RegisterGlobalMessageHandlers();
-        CultureExtensions.ConfigureAppCulture(_initialCulture);
-        //configuraion.SetBasePath(AppInfo.AppDirectory!);
-        //context.HostingEnvironment.ContentRootPath = AppInfo.AppDirectory!;
+
+        SetupHostedAppBehaviour();
+
+        //start host
+        await _genericHost.StartAsync();
+
+        GlobalApplicationScope = Services.GetRequiredService<IAppScope>();
     }
 
     void SetupHostedAppBehaviour()
@@ -80,59 +71,13 @@ public sealed class WPFAppHost : IWPFAppHost
         globalMessageHandlers.ForEach(recipient => messenger.RegisterAll(recipient));
     }
 
-    async Task Start(string[]? args = null, CancellationToken token = default)
+    public async Task CreateAndShowMainWindow<TMainWindowModelType>() 
+        where TMainWindowModelType : BaseWindowModel
     {
-        var startupCancellation = CancellationTokenSource.CreateLinkedTokenSource(token);
-        startupCancellation.Token.Register(_hostedApp.Shutdown);
-
-        try
-        {
-            //start host
-            await _genericHost.StartAsync();
-
-            GlobalApplicationScope = Services.GetRequiredService<IAppScope>();
-
-            Logger.LogInformation("Application started [env. {Environment}, ver. {ProductVersion}]", AppInfo.EnvironmentName, AppInfo.VersionInfo!.ProductVersion);
-            Logger.LogInformation("Culture detected: {Culture}", Thread.CurrentThread.CurrentCulture.Name);
-
-            startupCancellation.Token.ThrowIfCancellationRequested();
-
-            if (_onAppStartup is not null)
-            {
-                await _onAppStartup.Invoke(GlobalApplicationScope, startupCancellation, args);
-                startupCancellation.Token.ThrowIfCancellationRequested();
-            }
-
-            await CreateAndShowMainWindow(startupCancellation.Token);
-
-            startupCancellation.Token.ThrowIfCancellationRequested();
-        }
-        catch (OperationCanceledException)
-        {
-            Logger?.LogInformation("Application initialization cancelled.");
-            return;
-        }
-        catch (Exception ex)
-        {
-            _appExceptionHandler!.Handle(LogLevel.Critical, "Unexpected error occured", ex);
-            _hostedApp!.Shutdown();
-            return;
-        }
-        finally
-        {
-            //cleanup
-        }
-    }
-
-    async Task CreateAndShowMainWindow(CancellationToken token)
-    {
-        if (_mainWindowModelType is null)
-            return;
-
-        var mainWindowModel = Services.GetRequiredService(_mainWindowModelType!) as BaseWindowModel;
+        var mainWindowModel = Services.GetRequiredService<TMainWindowModelType>();
         ArgumentNullException.ThrowIfNull(mainWindowModel);
 
-        await mainWindowModel.Initialize(token);
+        await mainWindowModel.Initialize(StartupToken);
         mainWindowModel.OnClosed += MainWindowModel_OnClose;
 
         var windowService = Services.GetRequiredService<IDialogService>();
@@ -164,7 +109,7 @@ public sealed class WPFAppHost : IWPFAppHost
         {
             _hostedApp.Exit -= HostedApp_Exit;
         }
-        _appExceptionHandler?.Dispose();
-        _genericHost?.Dispose();
+        _globalAppExceptionHandler.Dispose();
+        _genericHost.Dispose();
     }
 }

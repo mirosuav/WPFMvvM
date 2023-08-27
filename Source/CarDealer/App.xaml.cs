@@ -8,8 +8,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Globalization;
+using System.Text.RegularExpressions;
 using WPFMvvM.Framework.Exceptions;
 using WPFMvvM.Framework.Extensions;
+using WPFMvvM.Framework.Utils;
 using WPFMvvM.Framework.ViewModel;
 
 [assembly: ThemeInfo(
@@ -29,22 +31,59 @@ public partial class App : Application, IExceptionHandler
 
     public App()
     {
-        host = WPFAppHost
-                   .CreateBuilder()
-                   .UseMainWindowModel(typeof(MainWindowModel))
-                   .AddGlobalExceptionHanlder(this)
-                   .ConfigureServices(ConfigureServices)
-                   .ConfigureLogging(ConfigureLogging)
-                   .ConfigureAppConfiguration(ConfigureAppConfiguration)
-                   .UseAppCulture(CultureInfo.GetCultureInfo("en-US"))
-                   .UseStartup(OnStartup)
-                   .Build();
+        var builder = WPFAppHost.CreateBuilder();
+
+        builder.UseGlobalExceptionHanlder(this);
+
+        ConfigureServices(builder);
+
+        builder.AddViewModelsInAssembly(GetType().Assembly);
+
+        ConfigureLogging(builder);
+
+        ConfigureAppConfiguration(builder);
+
+        builder.UseAppCulture(new ApplicationCulture(CultureInfo.GetCultureInfo("en-US"), CultureInfo.GetCultureInfo("en-US")));
+
+        host = builder.Build();
     }
 
     protected override async void OnStartup(StartupEventArgs e)
     {
-        base.OnStartup(e);
-        await host.StartAsync(e.Args);
+        try
+        {
+            //start host
+            await host.StartAsync(e.Args);
+
+            host.Logger.LogInformation("Application started [env. {Environment}, ver. {ProductVersion}]", host.AppInfo.EnvironmentName, host.AppInfo.VersionInfo!.ProductVersion);
+            host.Logger.LogInformation("Culture detected: {Culture}", Thread.CurrentThread.CurrentCulture.Name);
+
+            host.StartupToken.ThrowIfCancellationRequested();
+
+            if (host.GlobalApplicationScope is CarDealerAppScope scope)
+                await scope.Data.Database.EnsureCreatedAsync(host.StartupToken);
+
+            host.StartupToken.ThrowIfCancellationRequested();
+
+            await host.CreateAndShowMainWindow<MainWindowModel>();
+
+            host.StartupToken.ThrowIfCancellationRequested();
+        }
+        catch (OperationCanceledException)
+        {
+            host.Logger?.LogInformation("Application initialization cancelled.");
+            return;
+        }
+        catch (Exception ex)
+        {
+            host.ExceptionHandler!.Handle(LogLevel.Critical, "Unexpected error occured", ex);
+            Shutdown();
+            return;
+        }
+        finally
+        {
+            //cleanup
+        }
     }
 
 
@@ -56,34 +95,27 @@ public partial class App : Application, IExceptionHandler
     }
 
 
-    async ValueTask OnStartup(IAppScope mainAppScope, CancellationTokenSource cts, string[]? args)
-    {
-        //  host.Logger!.LogInformation("Application Startup passed");
-        if (mainAppScope is CarDealerAppScope scope)
-            await scope.Data.Database.EnsureCreatedAsync(cts.Token);
-    }
 
-
-    void ConfigureAppConfiguration(IConfiguration configuration)
+    void ConfigureAppConfiguration(WPFAppHostBuilder builder)
     {
         //  host.Logger!.LogInformation("ConfigureAppConfiguration passed");
     }
 
-    void ConfigureLogging(ILoggingBuilder services)
+    void ConfigureLogging(WPFAppHostBuilder builder)
     {
         //  host.Logger!.LogInformation("ConfigureLogging passed");
     }
 
 
 
-    void ConfigureServices(IConfiguration configuration, IServiceCollection services)
+    void ConfigureServices(WPFAppHostBuilder builder)
     {
         // host.Logger!.LogInformation("ConfigureServices passed");
-        services.AddScoped<IAppScope, CarDealerAppScope>();
-        services.AddScoped<CarDealerAppScope>();
-        services.Configure<GeneralSettings>(configuration.GetSection(nameof(GeneralSettings)));
+        builder.Services.AddScoped<IAppScope, CarDealerAppScope>();
+        builder.Services.AddScoped<CarDealerAppScope>();
+        builder.Services.Configure<GeneralSettings>(builder.Configuration.GetSection(nameof(GeneralSettings)));
 
-        services.AddDbContext<AppDbContext>(x =>
+        builder.Services.AddDbContext<AppDbContext>(x =>
         {
             x.UseInMemoryDatabase("CarDealer", db =>
             {
@@ -91,8 +123,6 @@ public partial class App : Application, IExceptionHandler
             });
         });
 
-        //register all ViewModels
-        services.AddAllDerivedTypesInAssembly<BaseViewModel>(GetType().Assembly);
     }
 
 
