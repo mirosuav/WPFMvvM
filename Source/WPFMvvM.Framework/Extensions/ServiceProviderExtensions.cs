@@ -1,4 +1,6 @@
-﻿namespace WPFMvvM.Framework.Extensions;
+﻿using System.Reflection;
+
+namespace WPFMvvM.Framework.Extensions;
 
 public static class ServiceProviderExtensions
 {
@@ -12,6 +14,18 @@ public static class ServiceProviderExtensions
     public static ApplicationHostScope ToApplicationScopeHost(this IServiceScope serviceScope)
     {
         return new(serviceScope, serviceScope.ServiceProvider.GetRequiredService<IAppScope>());
+    }
+
+    public static WPFAppHost Build(this HostApplicationBuilder buider)
+    {
+        //  Services.AddAllDerivedTypesInAssembly<BaseViewModel>(assembly);
+        return null;
+    }
+    public static WPFAppHostBuilder AddViewModelsInAssembly(this WPFAppHostBuilder buider, Assembly assembly)
+    {
+        ArgumentNullException.ThrowIfNull(assembly);
+      //  Services.AddAllDerivedTypesInAssembly<BaseViewModel>(assembly);
+        return buider;
     }
 }
 

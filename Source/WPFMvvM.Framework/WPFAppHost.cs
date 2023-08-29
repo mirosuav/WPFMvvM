@@ -24,13 +24,12 @@ public sealed class WPFAppHost : IWPFAppHost
     public IAppScope? GlobalApplicationScope { get; private set; }
     public ILogger<WPFAppHost> Logger { get; }
     public AppInfo AppInfo { get; }
-    public CancellationTokenSource StartupCancellation { get; } = new();
+    public CancellationTokenSource StartupCancellation { get; private set; } = new();
     public CancellationToken StartupToken => StartupCancellation.Token;
 
     public WPFAppHost(IHost genericHost)
     {
         Guard.IsNotNull(genericHost);
-
         _genericHost = genericHost;
         _hostedApp = Application.Current;
         Services = _genericHost.Services;
@@ -39,19 +38,16 @@ public sealed class WPFAppHost : IWPFAppHost
         _globalAppExceptionHandler = AppExceptionHandler.Create(_hostedApp, Logger, Services.GetService<IExceptionHandler>());
     }
 
-    public static WPFAppHostBuilder CreateBuilder()
-        => WPFAppHostBuilder.Create();
-
-
-    public async Task StartAsync(string[]? args = null)
+    public static WPFAppHostBuilder CreateBuilder(string[]? args = null)
+        => new WPFAppHostBuilder(args);
+    public async Task StartAsync(CancellationToken token = default)
     {
-        //StartupCancellation.Token.Register(_hostedApp.Shutdown);
+        StartupCancellation = CancellationTokenSource.CreateLinkedTokenSource(token);
 
         RegisterGlobalMessageHandlers();
 
         SetupHostedAppBehaviour();
 
-        //start host
         await _genericHost.StartAsync();
 
         GlobalApplicationScope = Services.GetRequiredService<IAppScope>();
@@ -71,7 +67,7 @@ public sealed class WPFAppHost : IWPFAppHost
         globalMessageHandlers.ForEach(recipient => messenger.RegisterAll(recipient));
     }
 
-    public async Task CreateAndShowMainWindow<TMainWindowModelType>() 
+    public async Task CreateAndShowMainWindow<TMainWindowModelType>()
         where TMainWindowModelType : BaseWindowModel
     {
         var mainWindowModel = Services.GetRequiredService<TMainWindowModelType>();

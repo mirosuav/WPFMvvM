@@ -15,13 +15,8 @@ public class WPFAppHostBuilder
     public IConfiguration Configuration => hostBuilder.Configuration;
     public ILoggingBuilder Logging => hostBuilder.Logging;
     public IHostEnvironment Environment => hostBuilder.Environment;
-
-    public static WPFAppHostBuilder Create(string[]? args = null)
-    {
-        return new WPFAppHostBuilder(args);
-    }
-
-    private WPFAppHostBuilder(string[]? args = null)
+    
+    public WPFAppHostBuilder(string[]? args = null)
     {
         hostBuilder = Host.CreateApplicationBuilder(args);
         ConfigureServicesInternal(hostBuilder.Services);
@@ -69,10 +64,9 @@ public class WPFAppHostBuilder
         services.AddSingletonWithSelf<IGlobalMessageHandler, ApplicationRequestHanlder>();
 
         services.AddSingleton<IWPFAppHost, WPFAppHost>();
-
     }
 
-    public IWPFAppHost Build(string[]? args = null)
+    public IWPFAppHost Build()
     {
         checkBuilt();
         _hostBuilt = true;

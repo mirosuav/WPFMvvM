@@ -29,9 +29,9 @@ public partial class App : Application, IExceptionHandler
 {
     private readonly IWPFAppHost host;
 
-    public App()
+    public App(string[]? args = null)
     {
-        var builder = WPFAppHost.CreateBuilder();
+        var builder = WPFAppHost.CreateBuilder(args);
 
         builder.UseGlobalExceptionHanlder(this);
 
@@ -53,7 +53,7 @@ public partial class App : Application, IExceptionHandler
         try
         {
             //start host
-            await host.StartAsync(e.Args);
+            await host.StartAsync();
 
             host.Logger.LogInformation("Application started [env. {Environment}, ver. {ProductVersion}]", host.AppInfo.EnvironmentName, host.AppInfo.VersionInfo!.ProductVersion);
             host.Logger.LogInformation("Culture detected: {Culture}", Thread.CurrentThread.CurrentCulture.Name);

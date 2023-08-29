@@ -1,6 +1,7 @@
 ﻿namespace WPFMvvM.Framework.Handlers;
 
-public class ApplicationRequestHanlder : IGlobalMessageHandler, IRecipient<ApplicationShutdownNotification>
+public class ApplicationRequestHanlder : IGlobalMessageHandler, 
+    IRecipient<ApplicationShutdownNotification>
 {
     public ApplicationRequestHanlder()
     {

@@ -14,7 +14,7 @@ public interface IWPFAppHost
     IExceptionHandler ExceptionHandler { get; }
     IAppScope? GlobalApplicationScope { get; }
     IServiceProvider Services { get; }
-    Task StartAsync(string[]? args = null);
+    Task StartAsync(CancellationToken token = default);
     CancellationToken StartupToken { get; }
     Task CreateAndShowMainWindow<TMainWindowModelType>() where TMainWindowModelType : BaseWindowModel;
 }

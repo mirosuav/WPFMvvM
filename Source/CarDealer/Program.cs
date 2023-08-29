@@ -6,7 +6,7 @@ public class Program
     public static int Main(string[] args)
     {
 
-        var app = new App();
+        var app = new App(args);
         return app.Run();
     }
 
