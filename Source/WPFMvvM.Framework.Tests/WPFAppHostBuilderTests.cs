@@ -14,7 +14,6 @@ namespace WPFMvvM.Framework.Tests;
 
 public class WPFAppHostBuilderTests : IDisposable
 {
-    Application Current;
     private bool disposedValue;
 
     public WPFAppHostBuilderTests()
@@ -26,6 +25,10 @@ public class WPFAppHostBuilderTests : IDisposable
     public void AfterHostBuild_ShouldBeDisposed()
     {
         //ARRANGE
+
+        var App = new Application();
+        App.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+
         var exHandler = new ExHandler();
 
 
@@ -50,7 +53,7 @@ public class WPFAppHostBuilderTests : IDisposable
             return (builderWR, host);
         };
 
-        (var builderWR, var obj) = ACT(Current);
+        (var builderWR, var obj) = ACT(App);
 
         //ASSERT
         GC.Collect();
@@ -236,7 +239,6 @@ public class WPFAppHostBuilderTests : IDisposable
     public void AfterHostBuilt_UseAppCulture_ShouldThrow()
     {
         //ARRANGE
-        Current = new Application();
         var customCulture = CultureInfo.GetCultureInfo("en-NZ"); //English New Zealand
         var customUICulture = CultureInfo.GetCultureInfo("en-PH");//English Philippines
         var appCI = new ApplicationCulture(customCulture, customUICulture);
@@ -255,7 +257,6 @@ public class WPFAppHostBuilderTests : IDisposable
     public void AfterHostBuilt_UseGlobalExceptionHanlder_Should()
     {
         //ARRANGE
-        Current = new Application();
         var exHandler = new ExHandler();
 
         //ACT
@@ -272,7 +273,6 @@ public class WPFAppHostBuilderTests : IDisposable
     public void AfterHostBuilt_AddViewModelsInAssembly_Should()
     {
         //ACT
-        Current = new Application();
         var builder = new WPFAppHostBuilder();
         var host = builder.Build();
 
@@ -287,7 +287,6 @@ public class WPFAppHostBuilderTests : IDisposable
         {
             if (disposing)
             {
-                Current?.Shutdown();
             }
 
             // TODO: free unmanaged resources (unmanaged objects) and override finalizer
@@ -295,13 +294,6 @@ public class WPFAppHostBuilderTests : IDisposable
             disposedValue = true;
         }
     }
-
-    // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-    // ~WPFAppHostBuilderTests()
-    // {
-    //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-    //     Dispose(disposing: false);
-    // }
 
     public void Dispose()
     {
